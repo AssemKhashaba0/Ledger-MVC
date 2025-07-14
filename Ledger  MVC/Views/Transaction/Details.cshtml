@@ -1,0 +1,24 @@
+﻿@model Ledger__MVC.Controllers.TransactionController.TransactionViewModel
+@{
+    ViewData["Title"] = "تفاصيل المعاملة";
+}
+
+<div class="container mt-4">
+    <h2>تفاصيل المعاملة</h2>
+
+    <dl class="row">
+        <dt class="col-sm-3">العميل</dt>
+        <dd class="col-sm-9">@Model.ClientName</dd>
+        <dt class="col-sm-3">نوع المعاملة</dt>
+        <dd class="col-sm-9">@Model.TypeDisplayName</dd>
+        <dt class="col-sm-3">المبلغ</dt>
+        <dd class="col-sm-9">@Model.Amount.ToString("C")</dd>
+        <dt class="col-sm-3">التاريخ</dt>
+        <dd class="col-sm-9">@Model.Date.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">ملاحظات</dt>
+        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Notes) ? "-" : Model.Notes)</dd>
+    </dl>
+
+    <a asp-action="Update" asp-route-id="@Model.Id" class="btn btn-primary">تعديل</a>
+    <a asp-action="Index" class="btn btn-secondary">رجوع</a>
+</div>

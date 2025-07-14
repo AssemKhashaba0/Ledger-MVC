@@ -1,0 +1,156 @@
+﻿@model IEnumerable<Ledger__MVC.Controllers.UserController.UserViewModel>
+
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> إضافة مستخدم جديد
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["Success"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["Error"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>الاسم الكامل</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>رقم الهاتف</th>
+                            <th>نوع الاشتراك</th>
+                            <th>تاريخ انتهاء الاشتراك</th>
+                            <th>الحالة</th>
+                            <th>عدد العملاء</th>
+                            <th>عدد المعاملات</th>
+                            <th>آخر تسجيل دخول</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => item.FullName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.PhoneNumber)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.SubscriptionTypeDisplayName)</td>
+                                    <td>@item.SubscriptionEndDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">مفعل</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">محظور</span>
+                                        }
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.ClientsCount)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.TransactionsCount)</td>
+                                    <td>@(item.LastLogin == DateTime.MinValue ? "لم يتم تسجيل الدخول بعد" : item.LastLogin.ToString("yyyy-MM-dd HH:mm"))</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="التفاصيل">
+                                                <i class="fas fa-info-circle"></i>
+                                            </a>
+                                            <form asp-action="Block" asp-route-id="@item.Id" method="post" class="d-inline-block" onsubmit="return confirm('هل أنت متأكد من تغيير حالة هذا المستخدم؟');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-warning" : "btn-success")" title="@(item.IsActive ? "حظر المستخدم" : "تفعيل المستخدم")">
+                                                    <i class="fas @(item.IsActive ? "fa-ban" : "fa-check-circle")"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@item.Id" data-email="@item.Email" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center">لا يوجد مستخدمون لعرضهم.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد أنك تريد حذف المستخدم <strong id="userEmailToDelete"></strong> وجميع البيانات المتعلقة به؟ هذا الإجراء لا يمكن التراجع عنه.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form asp-action="DeleteConfirmed" method="post" id="deleteForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="userIdToDelete" />
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+    <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+                }
+            });
+
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var userId = button.data('id'); // Extract info from data-* attributes
+                var userEmail = button.data('email');
+
+                var modal = $(this);
+                modal.find('#userIdToDelete').val(userId);
+                modal.find('#userEmailToDelete').text(userEmail);
+            });
+        });
+    </script>
+}

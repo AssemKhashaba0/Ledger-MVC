@@ -1,0 +1,112 @@
+﻿@model List<Ledger__MVC.Controllers.TransactionController.TransactionViewModel>
+@{
+    ViewData["Title"] = "إدارة المعاملات";
+}
+
+<div class="container mt-4">
+    <h2>إدارة المعاملات</h2>
+
+    <!-- Search and Filter Section -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <select name="clientId" class="form-control">
+                    <option value="">كل العملاء</option>
+                    @foreach (var client in ViewData["Clients"] as List<dynamic>)
+                    {
+                        <option value="@client.Id" selected="@(ViewData["CurrentClientId"]?.ToString() == client.Id.ToString() ? "selected" : "")">@client.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">تصفية</button>
+                <a asp-action="Create" class="btn btn-success">إضافة معاملة</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Transactions Table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>العميل</th>
+                <th>نوع المعاملة</th>
+                <th>المبلغ</th>
+                <th>التاريخ</th>
+                <th>ملاحظات</th>
+                <th>الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in Model)
+            {
+                <tr>
+                    <td>@transaction.ClientName</td>
+                    <td>@transaction.TypeDisplayName</td>
+                    <td>@transaction.Amount.ToString("C")</td>
+                    <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@(string.IsNullOrEmpty(transaction.Notes) ? "-" : transaction.Notes)</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@transaction.Id" class="btn btn-sm btn-info">تفاصيل</a>
+                        <a asp-action="Update" asp-route-id="@transaction.Id" class="btn btn-sm btn-primary">تعديل</a>
+                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal-@transaction.Id">حذف</button>
+                    </td>
+                </tr>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal-@transaction.Id" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">تأكيد حذف المعاملة</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>هل أنت متأكد من رغبتك في حذف المعاملة للعميل <strong>@transaction.ClientName</strong> بقيمة <strong>@transaction.Amount.ToString("C")</strong>؟</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form asp-action="DeleteConfirmed" asp-route-id="@transaction.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger">حذف</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </tbody>
+    </table>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.modal').on('shown.bs.modal', function () {
+                $(this).find('[autofocus]').focus();
+            });
+        });
+    </script>
+}

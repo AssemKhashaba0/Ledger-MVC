@@ -1,0 +1,8 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "تفاصيل الاشتراك";
+}
+<h2>تفاصيل الاشتراك</h2>
+<p><strong>نوع الاشتراك:</strong> @Model.SubscriptionType</p>
+<p><strong>تاريخ انتهاء الاشتراك:</strong> @Model.SubscriptionEndDate</p>
+<p><strong>الأيام المتبقية:</strong> @Model.DaysRemaining</p>

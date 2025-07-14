@@ -1,0 +1,107 @@
+﻿@model Ledger__MVC.Controllers.UserController.UserViewModel
+
+@{
+    ViewData["Title"] = "تفاصيل المستخدم";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["Success"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["Error"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">معلومات المستخدم</h6>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.FullName)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.FullName)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Email)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Email)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.PhoneNumber)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.PhoneNumber)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.SubscriptionType)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.SubscriptionTypeDisplayName)
+                </dd>
+                <dt class="col-sm-3">
+                    تاريخ انتهاء الاشتراك
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.SubscriptionEndDate.ToString("yyyy-MM-dd")
+                </dd>
+                <dt class="col-sm-3">
+                    الحالة
+                </dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">مفعل</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">محظور</span>
+                    }
+                </dd>
+                <dt class="col-sm-3">
+                    عدد العملاء
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ClientsCount)
+                </dd>
+                <dt class="col-sm-3">
+                    عدد المعاملات
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.TransactionsCount)
+                </dd>
+                <dt class="col-sm-3">
+                    آخر تسجيل دخول
+                </dt>
+                <dd class="col-sm-9">
+                    @(Model.LastLogin == DateTime.MinValue ? "لم يتم تسجيل الدخول بعد" : Model.LastLogin.ToString("yyyy-MM-dd HH:mm"))
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+        <a asp-action="Update" asp-route-id="@Model.Id" class="btn btn-info me-2">
+            <i class="fas fa-edit"></i> تعديل
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> العودة إلى القائمة
+        </a>
+    </div>
+</div>

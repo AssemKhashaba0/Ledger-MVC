@@ -1,0 +1,45 @@
+﻿@model Ledger__MVC.Controllers.SubscriptionController.UpdateSubscriptionViewModel
+@{
+    ViewData["Title"] = "تعديل خطة الاشتراك";
+}
+
+<div class="container mt-4">
+    <h2>تعديل خطة الاشتراك لـ @ViewData["FullName"]</h2>
+
+    <form asp-action="UpdatePlan" asp-route-userId="@ViewData["UserId"]" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label asp-for="SubscriptionType">نوع الاشتراك</label>
+            <select asp-for="SubscriptionType" class="form-control" asp-items="@(new SelectList(ViewData["SubscriptionTypes"] as List<dynamic>, "Id", "Name"))">
+                <option value="">اختر نوع الاشتراك</option>
+            </select>
+            <span asp-validation-for="SubscriptionType" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="SubscriptionStartDate">تاريخ البداية</label>
+            <input asp-for="SubscriptionStartDate" class="form-control" type="date" />
+            <span asp-validation-for="SubscriptionStartDate" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Price">السعر</label>
+            <input asp-for="Price" class="form-control" type="number" step="0.01" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+        <a asp-action="Index" class="btn btn-secondary">إلغاء</a>
+    </form>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

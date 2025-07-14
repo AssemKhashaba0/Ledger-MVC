@@ -1,0 +1,36 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "تفاصيل العميل";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>تفاصيل العميل: @Model.Name</h2>
+
+<p><strong>الهاتف:</strong> @Model.PhoneNumber</p>
+<p><strong>البريد:</strong> @Model.Email</p>
+<p><strong>عدد المعاملات:</strong> @Model.TransactionsCount</p>
+
+<h4>المعاملات:</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>النوع</th>
+            <th>القيمة</th>
+            <th>التاريخ</th>
+            <th>ملاحظات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model.Transactions)
+        {
+                <tr>
+                    <td>@t.Type</td>
+                    <td>@t.Amount</td>
+                    <td>@t.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@t.Notes</td>
+                </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">رجوع</a>

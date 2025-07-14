@@ -1,0 +1,742 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - دفتر الحسابات</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5NVaZT/gbhQpmSDFVp/E7-TzSgwebyXhWnMDRhlfrjXj/prBND4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        /* استيراد خط عربي جميل */
+        @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+        /* متغيرات الألوان الجديدة (التي كانت سابقة في طلبك) */
+        :root {
+            --primary: #4CAF50; /* أخضر */
+            --accent: #FFC107; /* أصفر */
+            --background: #E8F5E9; /* أخضر فاتح جداً */
+            --text: #212121; /* أسود تقريبا */
+            --success: #4CAF50; /* أخضر */
+            --light-gray-text: #757575; /* رمادي متوسط */
+            --white: #FFFFFF; /* أبيض */
+            --shadow-light: rgba(76, 175, 80, 0.08); /* ظل خفيف من اللون الأخضر */
+            --shadow-medium: rgba(76, 175, 80, 0.15); /* ظل متوسط من اللون الأخضر */
+            --shadow-strong: rgba(76, 175, 80, 0.25); /* ظل قوي من اللون الأخضر */
+            --border-light: rgba(76, 175, 80, 0.12); /* حدود خفيفة من اللون الأخضر */
+            --primary-light: rgba(76, 175, 80, 0.1); /* شفافية خفيفة من اللون الأخضر */
+            --primary-hover: #388E3C; /* أخضر أغمق عند التحويم */
+            --accent-light: rgba(255, 193, 7, 0.1); /* شفافية خفيفة من اللون الأصفر */
+            --accent-hover: #FFA000; /* أصفر أغمق عند التحويم */
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            --gradient-background: linear-gradient(135deg, var(--background) 0%, #DCEDC8 100%); /* تدرج خلفية من الأخضر الفاتح */
+        }
+
+        /* الإعدادات العامة */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: var(--gradient-background);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* تنسيق الهيدر المحسن */
+        .navbar {
+            background: var(--white) !important;
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 8px 32px var(--shadow-light);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+            .navbar::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--gradient-primary);
+                border-radius: 0 0 8px 8px;
+            }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            text-decoration: none;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+            .navbar-brand:hover {
+                transform: translateY(-3px) scale(1.02);
+                filter: brightness(1.1);
+            }
+
+            .navbar-brand img {
+                height: clamp(40px, 7vw, 50px);
+                margin-left: 15px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px var(--shadow-medium);
+                transition: all 0.4s ease;
+            }
+
+            .navbar-brand:hover img {
+                transform: rotate(-5deg) scale(1.05);
+                box-shadow: 0 8px 30px var(--shadow-strong);
+            }
+
+        .navbar-nav .nav-link {
+            color: var(--text) !important;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            border-radius: 16px;
+            margin: 0 0.5rem;
+            position: relative;
+            font-size: 1rem;
+            overflow: hidden;
+        }
+
+            .navbar-nav .nav-link::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                background: var(--gradient-primary);
+                transition: width 0.3s ease;
+                border-radius: 16px;
+                z-index: -1;
+            }
+
+            .navbar-nav .nav-link:hover::before {
+                width: 100%;
+            }
+
+            .navbar-nav .nav-link:hover {
+                color: var(--white) !important;
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px var(--shadow-medium);
+            }
+
+            .navbar-nav .nav-link i {
+                margin-left: 10px;
+                font-size: 1.2em;
+                transition: transform 0.3s ease;
+            }
+
+            .navbar-nav .nav-link:hover i {
+                transform: scale(1.1);
+            }
+
+        .navbar-toggler {
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+            background: var(--primary-light);
+        }
+
+            .navbar-toggler:hover {
+                background: var(--primary);
+                transform: scale(1.05);
+                box-shadow: 0 4px 15px var(--shadow-medium);
+            }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgb(76, 175, 80)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            transition: all 0.3s ease;
+        }
+
+        .navbar-toggler:hover .navbar-toggler-icon {
+            transform: rotate(90deg);
+        }
+
+        /* تنسيق المحتوى الرئيسي */
+        .container {
+            padding: 2.5rem 1.5rem;
+            min-height: calc(100vh - 250px);
+            max-width: 1400px;
+            position: relative;
+        }
+
+        /* تنسيق الفوتر المحسن */
+        .footer {
+            background: var(--white);
+            border-top: 1px solid var(--border-light);
+            padding: 2.5rem 0;
+            color: var(--light-gray-text);
+            text-align: center;
+            box-shadow: 0 -8px 32px var(--shadow-light);
+            position: relative;
+        }
+
+            .footer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--gradient-primary);
+                border-radius: 8px 8px 0 0;
+            }
+
+            .footer a {
+                color: var(--primary);
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+                .footer a:hover {
+                    color: var(--accent);
+                    transform: translateY(-2px);
+                }
+
+                .footer a::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -4px;
+                    left: 0;
+                    width: 0;
+                    height: 2px;
+                    background: var(--gradient-primary);
+                    transition: width 0.3s ease;
+                }
+
+                .footer a:hover::after {
+                    width: 100%;
+                }
+
+        /* شريط التنقل السفلي للجوال المحسن */
+        .bottom-navbar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -8px 32px var(--shadow-medium);
+            z-index: 1030;
+            padding: 1rem 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+            .bottom-navbar::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--gradient-primary);
+                border-radius: 8px 8px 0 0;
+            }
+
+        .bottom-navbar-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+        }
+
+            .bottom-navbar-nav .nav-item {
+                flex: 1;
+                text-align: center;
+            }
+
+            .bottom-navbar-nav .nav-link {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: var(--light-gray-text);
+                font-size: 0.8rem;
+                font-weight: 600;
+                padding: 0.75rem 0.5rem;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 16px;
+                margin: 0 0.25rem;
+                position: relative;
+                overflow: hidden;
+            }
+
+                .bottom-navbar-nav .nav-link::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 0;
+                    height: 100%;
+                    background: var(--gradient-primary);
+                    transition: width 0.3s ease;
+                    border-radius: 16px;
+                    z-index: -1;
+                }
+
+                .bottom-navbar-nav .nav-link:hover::before,
+                .bottom-navbar-nav .nav-link.active::before {
+                    width: 100%;
+                }
+
+                .bottom-navbar-nav .nav-link:hover,
+                .bottom-navbar-nav .nav-link.active {
+                    color: var(--white);
+                    transform: translateY(-3px);
+                    box-shadow: 0 4px 20px var(--shadow-medium);
+                }
+
+                .bottom-navbar-nav .nav-link i {
+                    font-size: 1.5rem;
+                    margin-bottom: 6px;
+                    transition: transform 0.3s ease;
+                }
+
+                .bottom-navbar-nav .nav-link:hover i {
+                    transform: scale(1.1);
+                }
+
+        /* أزرار مخصصة محسنة */
+        .btn-link {
+            background: none !important;
+            border: none !important;
+            padding: 1rem 1.5rem !important;
+            margin: 0 !important;
+            color: var(--text) !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            border-radius: 16px !important;
+            text-decoration: none !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+            .btn-link::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                background: var(--gradient-primary);
+                transition: width 0.3s ease;
+                border-radius: 16px;
+                z-index: -1;
+            }
+
+            .btn-link:hover::before {
+                width: 100%;
+            }
+
+            .btn-link:hover {
+                color: var(--white) !important;
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 25px var(--shadow-medium) !important;
+            }
+
+        /* فئات مساعدة للـ RTL */
+        .me-2 {
+            margin-left: 0.5rem !important;
+            margin-right: 0 !important;
+        }
+
+        .ms-1 {
+            margin-right: 0.25rem !important;
+            margin-left: 0 !important;
+        }
+
+        .ms-2 {
+            margin-right: 0.5rem !important;
+            margin-left: 0 !important;
+        }
+
+        .ms-auto {
+            margin-right: auto !important;
+            margin-left: 0 !important;
+        }
+
+        /* تحسينات بصرية إضافية */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(76, 175, 80, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 193, 7, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* التجاوب مع الشاشات المختلفة */
+
+        /* الهواتف الذكية */
+        @@media (max-width: 575.98px) {
+            .navbar {
+                padding: 1rem 0;
+            }
+
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+
+                .navbar-brand img {
+                    height: 35px;
+                    margin-left: 10px;
+                }
+
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .footer {
+                display: none;
+            }
+
+            .bottom-navbar {
+                display: block;
+            }
+
+            body {
+                padding-bottom: 100px;
+            }
+
+            .bottom-navbar-nav .nav-link {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.3rem;
+            }
+
+                .bottom-navbar-nav .nav-link i {
+                    font-size: 1.3rem;
+                }
+        }
+
+        /* الأجهزة اللوحية الصغيرة */
+        @@media (min-width: 576px) and (max-width: 767.98px) {
+            .navbar-brand {
+                font-size: 1.6rem;
+            }
+
+                .navbar-brand img {
+                    height: 42px;
+                }
+
+            .container {
+                padding: 2rem 1.25rem;
+            }
+
+            .footer {
+                display: none;
+            }
+
+            .bottom-navbar {
+                display: block;
+            }
+
+            body {
+                padding-bottom: 95px;
+            }
+        }
+
+        /* الأجهزة اللوحية والشاشات المتوسطة */
+        @@media (min-width: 768px) and (max-width: 991.98px) {
+            .navbar-brand {
+                font-size: 1.7rem;
+            }
+
+                .navbar-brand img {
+                    height: 45px;
+                }
+
+            .container {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .footer {
+                display: block;
+            }
+
+            .bottom-navbar {
+                display: none;
+            }
+
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        /* الشاشات الكبيرة */
+        @@media (min-width: 992px) {
+            .navbar-brand {
+                font-size: 2rem;
+            }
+
+                .navbar-brand img {
+                    height: 50px;
+                }
+
+            .container {
+                padding: 3rem 2rem;
+            }
+
+            .footer {
+                display: block;
+            }
+
+            .bottom-navbar {
+                display: none;
+            }
+
+            body {
+                padding-bottom: 0;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 1.05rem;
+                padding: 1rem 2rem;
+            }
+        }
+
+        /* الشاشات الكبيرة جداً */
+        @@media (min-width: 1200px) {
+            .container {
+                padding: 3.5rem 2.5rem;
+            }
+
+            .navbar {
+                padding: 1.5rem 0;
+            }
+        }
+
+        /* تحسينات إضافية للتجاوب */
+        @@media (max-width: 767.98px) {
+            .navbar-collapse {
+                background: var(--white);
+                border-radius: 20px;
+                box-shadow: 0 15px 40px var(--shadow-medium);
+                margin-top: 1.5rem;
+                padding: 1.5rem;
+                border: 1px solid var(--border-light);
+            }
+
+            .navbar-nav .nav-item {
+                margin: 0.5rem 0;
+            }
+
+            .navbar-nav .nav-link {
+                padding: 1rem 1.25rem;
+                text-align: right;
+            }
+        }
+
+        /* تحسينات الأداء والانتقالات */
+        .navbar-nav .nav-link,
+        .bottom-navbar-nav .nav-link,
+        .btn-link {
+            will-change: transform;
+        }
+
+            /* التركيز والوصولية */
+            .nav-link:focus,
+            .navbar-brand:focus,
+            .btn-link:focus {
+                outline: 3px solid var(--primary);
+                outline-offset: 3px;
+                border-radius: 8px;
+            }
+
+        /* تحسينات الطباعة */
+        @@media print {
+            .navbar,
+            .bottom-navbar,
+            .footer {
+                display: none !important;
+            }
+
+            body {
+                padding-bottom: 0 !important;
+                background: white !important;
+            }
+
+            .container::before {
+                display: none !important;
+            }
+        }
+
+        /* تحسينات السلاسة والحركة */
+        @@media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* تحسينات للوضع المظلم */
+        @@media (prefers-color-scheme: dark) {
+            :root {
+                --background: #1A1A1A; /* خلفية داكنة */
+                --text: #E0E0E0; /* نص فاتح */
+                --white: #2C2C2C; /* بديل للأبيض في الوضع الداكن */
+                --light-gray-text: #BDBDBD; /* رمادي فاتح للوضع الداكن */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-md navbar-light bg-white border-bottom box-shadow">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/IMG/ASVS Logo.png" alt="دفتر" class="d-inline-block align-text-top">
+                    دفتر
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-md-inline-flex justify-content-between">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-chart-line ms-1"></i> نظرة عامة
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Clients" asp-action="Create">
+                                    <i class="fas fa-user-plus ms-1"></i> إضافة عميل
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Clients" asp-action="Index">
+                                    <i class="fas fa-users ms-1"></i> كل العملاء
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Transactions" asp-action="Index">
+                                    <i class="fas fa-exchange-alt ms-1"></i> كل المعاملات
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+                                    <i class="fas fa-user-circle ms-1"></i> مرحباً @UserManager.GetUserName(User)!
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <button type="submit" class="nav-link btn btn-link">
+                                        <i class="fas fa-sign-out-alt ms-1"></i> تسجيل خروج
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/Auth/Login">
+                                    <i class="fas fa-sign-in-alt ms-1"></i> تسجيل دخول
+                                </a>
+                            </li>
+                        </ul>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <nav class="bottom-navbar">
+            <ul class="bottom-navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-chart-line"></i>
+                        <span>نظرة عامة</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Clients" asp-action="Create">
+                        <i class="fas fa-user-plus"></i>
+                        <span>إضافة عميل</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Clients" asp-action="Index">
+                        <i class="fas fa-users"></i>
+                        <span>كل العملاء</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Transactions" asp-action="Index">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>كل المعاملات</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index">
+                        <i class="fas fa-user-cog"></i>
+                        <span>الحساب</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

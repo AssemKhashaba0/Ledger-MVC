@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "العملاء";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model List<dynamic>
+
+<h2>قائمة العملاء</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<a class="btn btn-success mb-3" asp-action="Create">إضافة عميل جديد</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>الاسم</th>
+            <th>رقم الهاتف</th>
+            <th>البريد الإلكتروني</th>
+            <th>عدد المعاملات</th>
+            <th>إجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var client in Model)
+        {
+            <tr>
+                <td>@client.Name</td>
+                <td>@client.PhoneNumber</td>
+                <td>@client.Email</td>
+                <td>@client.TransactionCount</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@client.Id" class="btn btn-info btn-sm">تفاصيل</a>
+                    <a asp-action="Edit" asp-route-id="@client.Id" class="btn btn-warning btn-sm">تعديل</a>
+                    <button class="btn btn-danger btn-sm" onclick="deleteClient(@client.Id)">حذف</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function deleteClient(id) {
+            if (confirm("هل أنت متأكد من حذف هذا العميل؟")) {
+                fetch(`/Client/DeleteConfirmed/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert("فشل الحذف");
+                    }
+                });
+            }
+        }
+    </script>
+}

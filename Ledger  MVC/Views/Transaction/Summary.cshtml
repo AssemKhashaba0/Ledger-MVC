@@ -1,0 +1,94 @@
+﻿@model List<Ledger__MVC.Controllers.TransactionController.TransactionSummaryViewModel>
+@{
+    ViewData["Title"] = "ملخص المعاملات";
+    var overallSummary = ViewData["OverallSummary"] as dynamic;
+}
+
+<div class="container mt-4">
+    <h2>ملخص المعاملات</h2>
+
+    <!-- Overall Summary -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>الملخص العام</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">إجمالي الديون</dt>
+                <dd class="col-sm-9">@overallSummary.TotalCredit.ToString("C")</dd>
+                <dt class="col-sm-3">إجمالي المدفوعات</dt>
+                <dd class="col-sm-9">@overallSummary.TotalDebit.ToString("C")</dd>
+                <dt class="col-sm-3">صافي الرصيد</dt>
+                <dd class="col-sm-9">@overallSummary.Net.ToString("C")</dd>
+                <dt class="col-sm-3">الحالة</dt>
+                <dd class="col-sm-9">@overallSummary.Status</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Client Summaries -->
+    @foreach (var summary in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>العميل: @summary.ClientName</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">إجمالي الديون</dt>
+                    <dd class="col-sm-9">@summary.TotalCredit.ToString("C")</dd>
+                    <dt class="col-sm-3">إجمالي المدفوعات</dt>
+                    <dd class="col-sm-9">@summary.TotalDebit.ToString("C")</dd>
+                    <dt class="col-sm-3">صافي الرصيد</dt>
+                    <dd class="col-sm-9">@summary.NetBalance.ToString("C")</dd>
+                    <dt class="col-sm-3">الحالة</dt>
+                    <dd class="col-sm-9">@summary.Status</dd>
+                </dl>
+                <h6>المعاملات</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>نوع المعاملة</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in summary.Transactions)
+                        {
+                            <tr>
+                                <td>@transaction.TypeDisplayName</td>
+                                <td>@transaction.Amount.ToString("C")</td>
+                                <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
+                                <td>@(string.IsNullOrEmpty(transaction.Notes) ? "-" : transaction.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">رجوع</a>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            @TempData["Success"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    }
+</div>

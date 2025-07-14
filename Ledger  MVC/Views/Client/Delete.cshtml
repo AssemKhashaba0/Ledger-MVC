@@ -1,0 +1,17 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "حذف العميل";
+}
+<h2>حذف العميل</h2>
+<h3>هل أنت متأكد من حذف العميل "@Model.Name"؟</h3>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">حذف</button>
+    <a asp-action="Index" class="btn btn-secondary">رجوع</a>
+</form>
+
+
