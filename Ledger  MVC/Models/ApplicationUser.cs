@@ -5,8 +5,6 @@ namespace Ledger__MVC.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required, StringLength(100)]
         public string FullName { get; set; }

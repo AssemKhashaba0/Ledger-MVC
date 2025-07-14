@@ -121,13 +121,14 @@ namespace Ledger__MVC.Controllers
             PopulateSubscriptionTypes();
             return View(new CreateUpdateUserViewModel { SubscriptionStartDate = DateTime.Now });
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUpdateUserViewModel model)
         {
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                Console.WriteLine("ModelState Errors: " + string.Join(", ", errors));
                 PopulateSubscriptionTypes();
                 return View(model);
             }
@@ -173,47 +174,87 @@ namespace Ledger__MVC.Controllers
                     foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
+                        Console.WriteLine($"Identity Error: {error.Description}");
                     }
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
 
-                // Add subscription history
-                var subscriptionHistory = new SubscriptionHistory
+                // Verify the user exists in _context
+                var savedUser = await _context.ApplicationUsers
+                    .FirstOrDefaultAsync(u => u.Email == model.Email);
+                if (savedUser == null)
                 {
-                    ApplicationUserId = user.Id,
-                    SubscriptionType = model.SubscriptionType,
-                    StartDate = model.SubscriptionStartDate,
-                    EndDate = user.SubscriptionEndDate,
-                    Price = model.Price,
-                    PaymentNote = "دفع يدوي تم تأكيده بواسطة الأدمن"
-                };
-                _context.SubscriptionHistories.Add(subscriptionHistory);
+                    Console.WriteLine("Failed to find user in _context. Email: " + model.Email);
+                    TempData["Error"] = "فشل في العثور على المستخدم في قاعدة البيانات. الرجاء المحاولة مرة أخرى.";
+                    PopulateSubscriptionTypes();
+                    return View(model);
+                }
+                Console.WriteLine($"Found user with ID: {savedUser.Id}");
+
+                // Add subscription history
+                try
+                {
+                    var subscriptionHistory = new SubscriptionHistory
+                    {
+                        ApplicationUserId = savedUser.Id,
+                        SubscriptionType = model.SubscriptionType,
+                        StartDate = model.SubscriptionStartDate,
+                        EndDate = user.SubscriptionEndDate,
+                        Price = model.Price,
+                        PaymentNote = "دفع يدوي تم تأكيده بواسطة الأدمن"
+                    };
+                    _context.SubscriptionHistories.Add(subscriptionHistory);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine("SubscriptionHistory saved successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to save SubscriptionHistory: {ex.Message}, InnerException: {ex.InnerException?.Message}");
+                    throw; // Rethrow to catch in outer try-catch
+                }
 
                 // Log audit
-                var auditLog = new AuditLog
-                {
-                    ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    Action = "إنشاء حساب مستخدم جديد",
-                    Details = $"تم إنشاء حساب للمستخدم {model.Email} مع اشتراك {GetEnumDisplayName(model.SubscriptionType)}",
-                    Timestamp = DateTime.Now
-                };
-                _context.AuditLogs.Add(auditLog);
+                //var adminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                //if (string.IsNullOrEmpty(adminId))
+                //{
+                //    Console.WriteLine("Admin user is not authenticated.");
+                //    TempData["Error"] = "لا يمكن تسجيل العملية لأن المسؤول غير مسجل الدخول.";
+                //    PopulateSubscriptionTypes();
+                //    return View(model);
+                //}
 
-                await _context.SaveChangesAsync();
+                //try
+                //{
+                //    var auditLog = new AuditLog
+                //    {
+                //        ApplicationUserId = adminId,
+                //        Action = "إنشاء حساب مستخدم جديد",
+                //        Details = $"تم إنشاء حساب للمستخدم {model.Email} مع اشتراك {GetEnumDisplayName(model.SubscriptionType)}",
+                //        Timestamp = DateTime.Now
+                //    };
+                //    _context.AuditLogs.Add(auditLog);
+                //    await _context.SaveChangesAsync();
+                //    Console.WriteLine("AuditLog saved successfully.");
+                //}
+                //catch (Exception ex)
+                //{
+                //    Console.WriteLine($"Failed to save AuditLog: {ex.Message}, InnerException: {ex.InnerException?.Message}");
+                //    throw; // Rethrow to catch in outer try-catch
+                //}
 
                 // Send email
                 try
                 {
                     string emailBody = $@"<h3>مرحبًا {model.FullName},</h3>
-                    <p>تم إنشاء حسابك بنجاح في نظام Smart Ledger.</p>
-                    <p>بيانات الدخول الخاصة بك:</p>
-                    <ul>
-                        <li><strong>البريد الإلكتروني:</strong> {model.Email}</li>
-                        <li><strong>كلمة السر المؤقتة:</strong> {temporaryPassword}</li>
-                    </ul>
-                    <p>يرجى تغيير كلمة السر بعد تسجيل الدخول الأول لأسباب أمنية.</p>
-                    <p>شكرًا لك!</p>";
+            <p>تم إنشاء حسابك بنجاح في نظام Smart Ledger.</p>
+            <p>بيانات الدخول الخاصة بك:</p>
+            <ul>
+                <li><strong>البريد الإلكتروني:</strong> {model.Email}</li>
+                <li><strong>كلمة السر المؤقتة:</strong> {temporaryPassword}</li>
+            </ul>
+            <p>يرجى تغيير كلمة السر بعد تسجيل الدخول الأول لأسباب أمنية.</p>
+            <p>شكرًا لك!</p>";
                     await _emailSender.SendEmailAsync(model.Email, "بيانات الدخول إلى Smart Ledger", emailBody);
                     TempData["Success"] = "تم إنشاء حساب المستخدم بنجاح وإرسال بيانات الدخول إلى البريد الإلكتروني.";
                 }
@@ -226,12 +267,12 @@ namespace Ledger__MVC.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Exception during SaveChanges: {ex.Message}, InnerException: {ex.InnerException?.Message}");
                 TempData["Error"] = $"حدث خطأ غير متوقع أثناء إنشاء المستخدم: {ex.InnerException?.Message ?? ex.Message}";
                 PopulateSubscriptionTypes();
                 return View(model);
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> Update(string id)
         {
