@@ -21,12 +21,15 @@ namespace Ledger__MVC.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UserController(ApplicationDbContext context, IEmailSender emailSender, UserManager<ApplicationUser> userManager)
+        public UserController(ApplicationDbContext context, IEmailSender emailSender, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _emailSender = emailSender;
             _userManager = userManager;
+            _roleManager = roleManager;
+
         }
 
         public class UserViewModel
@@ -179,6 +182,11 @@ namespace Ledger__MVC.Controllers
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
+                if (!await _roleManager.RoleExistsAsync("User"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("User"));
+                }
+                await _userManager.AddToRoleAsync(user, "User");
 
                 // Verify the user exists in _context
                 var savedUser = await _context.ApplicationUsers

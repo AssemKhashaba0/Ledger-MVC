@@ -553,13 +553,13 @@
                             <i class="fas fa-user-circle"></i>
                             <span>مرحباً @UserManager.GetUserName(User)</span>
                         </a>
-                        
-                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                            <button type="submit" class="logout-btn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                تسجيل خروج
-                            </button>
-                        </form>
+
+                            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+                                <button type="submit" class="nav-link btn btn-link">
+                                    <i class="fas fa-sign-out-alt ms-1"></i> تسجيل خروج
+                                </button>
+                            </form>
+
                     }
                     else
                     {

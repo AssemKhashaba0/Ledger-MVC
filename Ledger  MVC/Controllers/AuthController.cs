@@ -116,10 +116,9 @@ namespace Ledger__MVC.Controllers
                         return RedirectToAction("Dashboard", "User"); // إعادة توجيه الأدمن إلى /User/Dashboard
                     }else
                     {
-                        return RedirectToAction("Index", "Client"); // إعادة توجيه المستخدم العادي إلى الصفحة الرئيسية
+                        return RedirectToAction("Summary", "Transaction"); // إعادة توجيه المستخدم العادي إلى /Transaction/Summary
                     }
 
-                    return RedirectToLocal(returnUrl);
                 }
 
                 await LogFailedAttempt(user.Id);
@@ -246,14 +245,14 @@ namespace Ledger__MVC.Controllers
             return recentFailedAttempts >= 5;
         }
 
-        // دالة لإعادة التوجيه إلى الصفحة المطلوبة
-        private IActionResult RedirectToLocal(string returnUrl)
-        {
-            if (Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-            return RedirectToAction("Index", "Home");
-        }
+        //// دالة لإعادة التوجيه إلى الصفحة المطلوبة
+        //private IActionResult RedirectToLocal(string returnUrl)
+        //{
+        //    if (Url.IsLocalUrl(returnUrl))
+        //    {
+        //        return Redirect(returnUrl);
+        //    }
+        //    return RedirectToAction("Index", "Home");
+        //}
     }
 }

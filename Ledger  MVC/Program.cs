@@ -60,6 +60,17 @@ namespace Ledger__MVC
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapGet("/", async context =>
+            {
+                if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
+                {
+                    context.Response.Redirect("/Transaction/Summary");
+                }
+                else
+                {
+                    context.Response.Redirect("/auth/LOGIN");
+                }
+            });
 
             app.MapControllerRoute(
                 name: "default",
