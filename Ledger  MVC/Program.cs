@@ -1,5 +1,6 @@
 ﻿using Ledger__MVC.Data;
 using Ledger__MVC.Models;
+using Ledger__MVC.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,9 @@ namespace Ledger__MVC
             builder.Services.AddControllersWithViews();
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+
+            // إضافة خدمة إعادة تعيين الديمو
+            builder.Services.AddHostedService<DemoResetService>();
 
             var app = builder.Build();
 

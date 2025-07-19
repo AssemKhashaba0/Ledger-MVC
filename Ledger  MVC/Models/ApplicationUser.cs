@@ -27,8 +27,14 @@ namespace Ledger__MVC.Models
 
         public bool IsActive { get; set; } = true;
 
-        public DateTime? LastSeen { get; set; }
         public UserRole Role { get; set; } = UserRole.User;
+
+        public DateTime? LastSeen { get; set; }
+
+        // للحساب التجريبي
+        public DateTime? LastDemoReset { get; set; }
+
+        // Navigation properties
         public ICollection<Client> Clients { get; set; } = new List<Client>();
         public ICollection<FinancialTransaction> FinancialTransactions { get; set; } = new List<FinancialTransaction>();
         public ICollection<SubscriptionHistory> SubscriptionHistories { get; set; } = new List<SubscriptionHistory>();
