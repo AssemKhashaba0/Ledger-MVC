@@ -1,6 +1,8 @@
-﻿@model Ledger__MVC.Controllers.ClientController.ClientIndexViewModel
+﻿@using System.Linq
+@using System.Globalization
 @{
     ViewData["Title"] = "إدارة العملاء";
+    var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
 
 <style>
@@ -548,7 +550,7 @@
     </div>
 
     <!-- شبكة العملاء -->
-    @if (Model.Clients != null && Model.Clients.Any())
+    @if (Model.Clients != null && Model.Clients.Count > 0)
     {
         <div class="clients-grid">
             @foreach (var client in Model.Clients)
@@ -563,19 +565,21 @@
                             @if (client.Status == "متسوي")
                             {
                                 <i class="fas fa-check-circle"></i>
+                                <span>متسوي</span>
                             }
                             else if (client.NetBalance > 0)
                             {
                                 <i class="fas fa-arrow-up"></i>
+                                <span>عليه فلوس</span>
                             }
                             else
                             {
                                 <i class="fas fa-arrow-down"></i>
+                                <span>ليه فلوس</span>
                             }
-                            @client.Status
                             @if (client.Status != "متسوي")
                             {
-                                <span>(@client.NetBalance.ToString("N2") ج.م)</span>
+                                <span>(@Math.Abs(client.NetBalance).ToString("C2", egyptianCulture))</span>
                             }
                         </div>
                     </div>
@@ -600,7 +604,7 @@
                                 <div class="stat-label">عدد المعاملات</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">@Math.Abs(client.NetBalance).ToString("N0")</div>
+                                <div class="stat-value">@Math.Abs(client.NetBalance).ToString("C0", egyptianCulture)</div>
                                 <div class="stat-label">قيمة الحساب</div>
                             </div>
                         </div>
@@ -666,7 +670,7 @@
                 <div class="text-center">
                     <i class="fas fa-user-times" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
                     <h5>هل أنت متأكد من حذف العميل؟</h5>
-                    <p class="text-muted">سيتم حذف العميل <strong id="deleteClientName"></strong> نهائياً. هذا الإجراء لا يمكن التراجع عنه.</p>
+                    <p class="text-muted">سيتم حذف العميل <strong id="deleteClientName"></strong> نهائ. هذا الإجراء لا يمكن التراجع عنه.</p>
                 </div>
             </div>
             <div class="modal-footer">

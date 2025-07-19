@@ -85,3 +85,6 @@ namespace Ledger__MVC
         }
     }
 }
+// Install-Package DinkToPdf
+// أو
+// Install-Package itext7

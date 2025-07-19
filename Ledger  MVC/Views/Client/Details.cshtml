@@ -365,6 +365,19 @@
         text-decoration: none;
     }
 
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669, var(--success));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
     /* حالة فارغة */
     .empty-state {
         text-align: center;
@@ -592,6 +605,10 @@
 
     <!-- أزرار الإجراءات -->
     <div class="action-buttons">
+        <a asp-action="ExportToPdf" asp-route-id="@Model.Id" class="action-btn btn-success">
+            <i class="fas fa-file-pdf"></i>
+            تحميل تقرير PDF
+        </a>
         <a asp-action="Edit" asp-route-id="@Model.Id" class="action-btn btn-primary">
             <i class="fas fa-edit"></i>
             تعديل العميل

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Claims;
+using System.Globalization;
 
 namespace Ledger__MVC.Controllers
 {
@@ -642,6 +643,52 @@ namespace Ledger__MVC.Controllers
             };
 
             return View(model);
+        }
+
+        // GET: /Transaction/ExportClientTransactionsToHtml/{clientId}
+        [HttpGet]
+        public async Task<IActionResult> ExportClientTransactionsToHtml(int clientId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+
+                var client = await _context.Clients
+                    .Include(c => c.Transactions)
+                    .FirstOrDefaultAsync(c => c.Id == clientId && c.ApplicationUserId == userId);
+
+                if (client == null)
+                {
+                    TempData["Error"] = "العميل غير موجود أو لا ينتمي لك";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // حساب الإجماليات
+                var totalDebt = client.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
+                var totalPayment = client.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
+                var netBalance = totalDebt - totalPayment;
+
+                var model = new
+                {
+                    Client = client,
+                    TotalDebt = totalDebt,
+                    TotalPayment = totalPayment,
+                    NetBalance = netBalance,
+                    Status = netBalance > 0 ? "عليه فلوس" : netBalance < 0 ? "ليه فلوس" : "متسوي"
+                };
+
+                return View("TransactionReport", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ أثناء تصدير معاملات العميل. ClientId: {ClientId}", clientId);
+                TempData["Error"] = "حدث خطأ أثناء تصدير التقرير";
+                return RedirectToAction(nameof(Index), new { clientId });
+            }
         }
     }
   

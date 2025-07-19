@@ -1,0 +1,192 @@
+@model dynamic
+@{
+    ViewData["Title"] = "تقرير معاملات العميل";
+    var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
+}
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: #f8f9fa;
+        }
+        .report-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .client-info {
+            background: #e3f2fd;
+            padding: 25px;
+            margin: 20px;
+            border-radius: 10px;
+            border-right: 5px solid #2196f3;
+        }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-top: 4px solid;
+        }
+        .debt-card { border-top-color: #f44336; }
+        .payment-card { border-top-color: #4caf50; }
+        .balance-card { border-top-color: #ff9800; }
+        .transactions-table {
+            margin: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            padding: 15px;
+        }
+        .table td {
+            padding: 12px 15px;
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+        .debt-row { color: #f44336; font-weight: 600; }
+        .payment-row { color: #4caf50; font-weight: 600; }
+        .balance-positive { color: #f44336; }
+        .balance-negative { color: #4caf50; }
+        .balance-zero { color: #666; }
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        @@media print {
+            .print-btn { display: none; }
+            .report-container { box-shadow: none; margin: 0; }
+        }
+        @@media (max-width: 768px) {
+            .summary-cards { grid-template-columns: 1fr; }
+            .report-container { margin: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="report-header">
+            <h1><i class="fas fa-file-invoice"></i> تقرير معاملات العميل</h1>
+            <h2>@Model.Client.Name</h2>
+            <p><i class="fas fa-calendar"></i> @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</p>
+        </div>
+
+        <div class="client-info">
+            <h4><i class="fas fa-user"></i> معلومات العميل</h4>
+            <div class="row">
+                <div class="col-md-4"><strong>الاسم:</strong> @Model.Client.Name</div>
+                <div class="col-md-4"><strong>الهاتف:</strong> @Model.Client.PhoneNumber</div>
+                <div class="col-md-4"><strong>الإيميل:</strong> @(Model.Client.Email ?? "غير محدد")</div>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card debt-card">
+                <h5><i class="fas fa-arrow-up"></i> إجمالي المديونية</h5>
+                <h3>@Model.TotalDebt.ToString("C2", egyptianCulture)</h3>
+            </div>
+            <div class="summary-card payment-card">
+                <h5><i class="fas fa-arrow-down"></i> إجمالي المدفوعات</h5>
+                <h3>@Model.TotalPayment.ToString("C2", egyptianCulture)</h3>
+            </div>
+            <div class="summary-card balance-card">
+                <h5><i class="fas fa-balance-scale"></i> الحالة النهائية</h5>
+                <h3 class="@(Model.NetBalance > 0 ? "balance-positive" : Model.NetBalance < 0 ? "balance-negative" : "balance-zero")">
+                    @Model.Status: @Math.Abs(Model.NetBalance).ToString("C2", egyptianCulture)
+                </h3>
+            </div>
+        </div>
+
+        <div class="transactions-table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>التاريخ</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>الملاحظات</th>
+                        <th>الرصيد التراكمي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var runningBalance = 0m;
+                        var counter = 1;
+                    }
+                    @foreach (var transaction in ((IEnumerable<dynamic>)Model.Client.Transactions).OrderBy(t => t.Date))
+                    {
+                        if (transaction.Type == Ledger__MVC.Models.TransactionType.Debt)
+                            runningBalance += transaction.Amount;
+                        else
+                            runningBalance -= transaction.Amount;
+
+                        var typeClass = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "debt-row" : "payment-row";
+                        var typeName = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "مديونية" : "دفعة";
+                        var balanceClass = runningBalance > 0 ? "balance-positive" : runningBalance < 0 ? "balance-negative" : "balance-zero";
+
+                        <tr>
+                            <td>@counter</td>
+                            <td>@transaction.Date.ToString("yyyy/MM/dd HH:mm")</td>
+                            <td class="@typeClass">@typeName</td>
+                            <td class="@typeClass">@transaction.Amount.ToString("C2", egyptianCulture)</td>
+                            <td>@(transaction.Notes ?? "-")</td>
+                            <td class="@balanceClass">
+                                @Math.Abs(runningBalance).ToString("C2", egyptianCulture)
+                                @(runningBalance > 0 ? "(عليه)" : runningBalance < 0 ? "(ليه)" : "(متسوي)")
+                            </td>
+                        </tr>
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button class="btn btn-primary print-btn" onclick="window.print()">
+        <i class="fas fa-print"></i> طباعة
+    </button>
+
+    <script>
+        // تحسين الطباعة
+        window.addEventListener('beforeprint', function() {
+            document.title = 'تقرير_معاملات_@Model.Client.Name';
+        });
+    </script>
+</body>
+</html>
+
+
+

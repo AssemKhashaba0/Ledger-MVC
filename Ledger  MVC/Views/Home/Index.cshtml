@@ -1052,6 +1052,11 @@
             <p class="text-text-muted mb-4 md:mb-0 mr-8">
                 &copy; 2025 دفتر الإلكتروني. جميع الحقوق محفوظة.
             </p>
+            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 md:space-x-reverse mb-4 md:mb-0">
+                <a href="#terms" class="text-text-muted hover:text-primary transition-base">الشروط والأحكام</a>
+                <a href="#privacy" class="text-text-muted hover:text-primary transition-base">سياسة الخصوصية</a>
+                <a href="#faq" class="text-text-muted hover:text-primary transition-base">الأسئلة الشائعة</a>
+            </div>
             <div class="flex space-x-6 space-x-reverse ml-8">
                 <a href="#" class="text-text-muted hover:text-primary transition-base text-xl">
                     <i class="fab fa-facebook-f"></i>
@@ -1092,16 +1097,7 @@
             </button>
         </div>
     </div>
-    <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-4 animate-fadeIn delay-800">
-        <form asp-controller="Demo" asp-action="LoginDemo" method="post" class="inline">
-            <button type="submit" class="btn-outline text-lg hover:scale-105 transform transition-transform">
-                <i class="fas fa-play-circle ml-2"></i>جرب النسخة التجريبية
-            </button>
-        </form>
-        <a href="/auth/LOGIN" class="btn-primary text-lg hover:scale-105 transform transition-transform">
-            سجل دخول
-        </a>
-    </div>
+   
     <script>
         // Optional: Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -1221,3 +1217,5 @@
     </script>
 </body>
 </html>
+
+  

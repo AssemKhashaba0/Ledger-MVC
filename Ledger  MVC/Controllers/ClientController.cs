@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Ledger__MVC.Data;
 using Ledger__MVC.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Ledger__MVC.Controllers
 {
@@ -120,10 +121,10 @@ namespace Ledger__MVC.Controllers
                         Status = c.Transactions.Any()
                             ? (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
                                c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) > 0
-                               ? "ليه فلوس"
+                               ? "عليه فلوس"  // العميل مدين لك
                                : (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
                                   c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) < 0
-                                  ? "عليه فلوس"
+                                  ? "ليه فلوس"  // العميل له فلوس عندك
                                   : "متسوي"))
                             : "متسوي"
                     })
@@ -412,6 +413,141 @@ namespace Ledger__MVC.Controllers
                 _logger.LogError(ex, "خطأ أثناء حذف العميل. UserId: {UserId}", User.Identity.Name);
                 return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
+        }
+
+        // GET: /Client/ExportToPdf/{id}
+        [HttpGet]
+        public async Task<IActionResult> ExportToPdf(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return NotFound("المستخدم غير موجود");
+                }
+
+                var client = await _context.Clients
+                    .Include(c => c.Transactions)
+                    .FirstOrDefaultAsync(c => c.Id == id && c.ApplicationUserId == user.Id);
+
+                if (client == null)
+                {
+                    TempData["Error"] = "العميل غير موجود أو لا ينتمي لك";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // حساب الإجماليات
+                var totalDebt = client.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
+                var totalPayment = client.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
+                var netBalance = totalDebt - totalPayment;
+                var status = netBalance > 0 ? "عليه فلوس" : netBalance < 0 ? "ليه فلوس" : "متسوي";
+
+                // إنشاء HTML للـ PDF
+                var html = GenerateClientReportHtml(client, totalDebt, totalPayment, netBalance, status);
+                
+                // تحويل إلى PDF
+                var pdf = await GeneratePdfFromHtml(html);
+                
+                var fileName = $"تقرير_العميل_{client.Name}_{DateTime.Now:yyyy-MM-dd}.pdf";
+                return File(pdf, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ أثناء تصدير تقرير العميل. ClientId: {ClientId}", id);
+                TempData["Error"] = "حدث خطأ أثناء تصدير التقرير";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        private string GenerateClientReportHtml(Client client, decimal totalDebt, decimal totalPayment, decimal netBalance, string status)
+        {
+            var egyptianCulture = new CultureInfo("ar-EG");
+            var html = $@"
+<!DOCTYPE html>
+<html dir='rtl' lang='ar'>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {{ font-family: 'Arial', sans-serif; direction: rtl; text-align: right; }}
+        .header {{ text-align: center; margin-bottom: 30px; }}
+        .client-info {{ background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+        .summary {{ background: #e3f2fd; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+        .transactions {{ margin: 20px 0; }}
+        table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: right; }}
+        th {{ background-color: #f5f5f5; font-weight: bold; }}
+        .debt {{ color: #d32f2f; }}
+        .payment {{ color: #388e3c; }}
+        .total {{ font-weight: bold; font-size: 18px; }}
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <h1>تقرير العميل</h1>
+        <h2>{client.Name}</h2>
+        <p>تاريخ التقرير: {DateTime.Now:yyyy/MM/dd}</p>
+    </div>
+    
+    <div class='client-info'>
+        <h3>معلومات العميل</h3>
+        <p><strong>الاسم:</strong> {client.Name}</p>
+        <p><strong>رقم الهاتف:</strong> {client.PhoneNumber}</p>
+        <p><strong>البريد الإلكتروني:</strong> {client.Email ?? "غير محدد"}</p>
+        <p><strong>عدد المعاملات:</strong> {client.Transactions.Count}</p>
+    </div>
+    
+    <div class='summary'>
+        <h3>ملخص الحساب</h3>
+        <p><strong>إجمالي المديونية:</strong> <span class='debt'>{totalDebt.ToString("C2", egyptianCulture)}</span></p>
+        <p><strong>إجمالي المدفوعات:</strong> <span class='payment'>{totalPayment.ToString("C2", egyptianCulture)}</span></p>
+        <p class='total'><strong>الرصيد الصافي:</strong> {Math.Abs(netBalance).ToString("C2", egyptianCulture)} ({status})</p>
+    </div>
+    
+    <div class='transactions'>
+        <h3>تفاصيل المعاملات</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>الملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>";
+
+            foreach (var transaction in client.Transactions.OrderByDescending(t => t.Date))
+            {
+                var typeClass = transaction.Type == TransactionType.Debt ? "debt" : "payment";
+                var typeName = transaction.Type == TransactionType.Debt ? "مديونية" : "دفعة";
+                
+                html += $@"
+                <tr>
+                    <td>{transaction.Date:yyyy/MM/dd HH:mm}</td>
+                    <td class='{typeClass}'>{typeName}</td>
+                    <td class='{typeClass}'>{transaction.Amount.ToString("C2", egyptianCulture)}</td>
+                    <td>{transaction.Notes ?? "-"}</td>
+                </tr>";
+            }
+
+            html += @"
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>";
+
+            return html;
+        }
+
+        private async Task<byte[]> GeneratePdfFromHtml(string html)
+        {
+            // استخدم مكتبة مثل iTextSharp أو DinkToPdf
+            // هنا مثال بسيط - تحتاج تثبيت المكتبة المناسبة
+            
+            // مؤقت<|im_start|> - إرجاع HTML كـ bytes للاختبار
+            return System.Text.Encoding.UTF8.GetBytes(html);
         }
     }
 }

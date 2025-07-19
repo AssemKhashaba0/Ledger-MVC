@@ -1,6 +1,7 @@
 ﻿@model dynamic
 @{
     ViewData["Title"] = "إدارة المعاملات";
+    var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
 
 <style>
@@ -458,6 +459,42 @@
             overflow-x: auto;
         }
     }
+
+    .client-summary-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .client-summary-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .client-summary-body {
+        padding: 1.5rem;
+    }
+
+    .summary-item {
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--radius);
+        background: var(--bg-secondary);
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
 </style>
 
 <div class="transactions-container">
@@ -492,18 +529,67 @@
             <i class="fas fa-filter"></i>
             تصفية المعاملات
         </div>
-        <form asp-action="Index" method="get" class="row g-3 align-items-center">
-            <div class="col-md-4">
-                <select name="clientId" class="form-select filter-select" onchange="this.form.submit()">
-                    <option value="">جميع العملاء</option>
-                    @foreach (var client in ViewData["Clients"] as List<Ledger__MVC.Controllers.TransactionController.ClientSelectViewModel>)
-                    {
-                        <option value="@client.Id" selected="@(Model.ClientId == client.Id ? "selected" : null)">@client.Name</option>
-                    }
-                </select>
-            </div>
-        </form>
+        <div class="d-flex justify-content-between align-items-center">
+            <form asp-action="Index" method="get" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <select name="clientId" class="form-select filter-select" onchange="this.form.submit()">
+                        <option value="">جميع العملاء</option>
+                        @foreach (var client in ViewData["Clients"] as List<Ledger__MVC.Controllers.TransactionController.ClientSelectViewModel>)
+                        {
+                            <option value="@client.Id" selected="@(Model.ClientId == client.Id ? "selected" : null)">@client.Name</option>
+                        }
+                    </select>
+                </div>
+            </form>
+            @if (Model.ClientId > 0)
+            {
+                <a asp-action="ExportClientTransactionsToHtml" asp-route-clientId="@Model.ClientId" class="btn btn-success" target="_blank">
+                    <i class="fas fa-file-alt"></i>
+                    عرض التقرير
+                </a>
+            }
+        </div>
     </div>
+
+    @if (Model.ClientId > 0 && ViewData["SelectedClient"] != null)
+    {
+        var selectedClient = ViewData["SelectedClient"] as dynamic;
+        <div class="client-summary-card">
+            <div class="client-summary-header">
+                <h5><i class="fas fa-user"></i> تفاصيل العميل: @selectedClient.Name</h5>
+            </div>
+            <div class="client-summary-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="summary-item debt">
+                            <div class="summary-value">@selectedClient.TotalDebt.ToString("C2", egyptianCulture)</div>
+                            <div class="summary-label">إجمالي المديونية</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item payment">
+                            <div class="summary-value">@selectedClient.TotalPayment.ToString("C2", egyptianCulture)</div>
+                            <div class="summary-label">إجمالي المدفوعات</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item balance">
+                            <div class="summary-value @(selectedClient.NetBalance > 0 ? "text-danger" : selectedClient.NetBalance < 0 ? "text-success" : "text-muted")">
+                                @Math.Abs(selectedClient.NetBalance).ToString("C2", egyptianCulture)
+                            </div>
+                            <div class="summary-label">@selectedClient.Status</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-action="ExportClientTransactionsToHtml" asp-route-clientId="@Model.ClientId" class="btn btn-success btn-sm" target="_blank">
+                            <i class="fas fa-file-alt"></i>
+                            عرض التقرير
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- جدول المعاملات -->
     <div class="table-container">
