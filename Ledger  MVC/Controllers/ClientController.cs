@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Ledger__MVC.Controllers
 {
-    [Authorize(Roles = nameof(UserRole.User))]
     public class ClientController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -30,34 +28,62 @@ namespace Ledger__MVC.Controllers
             _logger = logger;
         }
 
-        // نموذج إدخال بيانات العميل
-        public class ClientViewModel
+        // ViewModel for Index
+        public class ClientIndexViewModel
         {
-            [Required(ErrorMessage = "الاسم مطلوب")]
-            public string Name { get; set; }
-
-            [Required(ErrorMessage = "رقم الهاتف مطلوب")]
-            public string PhoneNumber { get; set; }
-
-            [EmailAddress(ErrorMessage = "البريد الإلكتروني غير صحيح")]
-            public string? Email { get; set; }
+            public List<ClientViewModel> Clients { get; set; }
         }
 
-        // نموذج تعديل بيانات العميل
+        // ViewModel for Client List
+        public class ClientViewModel
+        {
+            public int Id { get; set; }
+            [Required(ErrorMessage = "الاسم مطلوب")]
+            public string Name { get; set; }
+            [Required(ErrorMessage = "رقم الهاتف مطلوب")]
+            public string PhoneNumber { get; set; }
+            [EmailAddress(ErrorMessage = "البريد الإلكتروني غير صحيح")]
+            public string? Email { get; set; }
+            public int TransactionCount { get; set; }
+            public decimal NetBalance { get; set; } // Added for balance summary
+            public string Status { get; set; } // Added for status (له فلوس، عليه فلوس، متسوي)
+        }
+
+        // ViewModel for Client Details
+        public class ClientDetailsViewModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string PhoneNumber { get; set; }
+            public string? Email { get; set; }
+            public int TransactionsCount { get; set; }
+            public List<TransactionViewModel> Transactions { get; set; }
+        }
+
+        // ViewModel for Transactions
+        public class TransactionViewModel
+        {
+            public int Id { get; set; }
+            public TransactionType Type { get; set; }
+            public decimal Amount { get; set; }
+            public DateTime Date { get; set; }
+            public string Notes { get; set; }
+        }
+
+        // ViewModel for Update Client
         public class UpdateClientViewModel
         {
             public int Id { get; set; }
-
             [Required(ErrorMessage = "الاسم مطلوب")]
             public string Name { get; set; }
-
             [Required(ErrorMessage = "رقم الهاتف مطلوب")]
             public string PhoneNumber { get; set; }
-
             [EmailAddress(ErrorMessage = "البريد الإلكتروني غير صحيح")]
             public string? Email { get; set; }
         }
 
+        // GET: /Client/Index
+        [HttpGet]
         // GET: /Client/Index
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -80,31 +106,57 @@ namespace Ledger__MVC.Controllers
 
                 var clients = await _context.Clients
                     .Where(c => c.ApplicationUserId == user.Id)
-                    .Select(c => new
+                    .Include(c => c.Transactions)
+                    .Select(c => new ClientViewModel
                     {
-                        c.Id,
-                        c.Name,
-                        c.PhoneNumber,
-                        c.Email,
-                        TransactionCount = c.Transactions.Count
+                        Id = c.Id,
+                        Name = c.Name,
+                        PhoneNumber = c.PhoneNumber,
+                        Email = c.Email,
+                        TransactionCount = c.Transactions.Count,
+                        NetBalance = c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
+                                     c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount),
+                        Status = c.Transactions.Any()
+                            ? (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
+                               c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) > 0
+                               ? "ليه فلوس"
+                               : (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
+                                  c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) < 0
+                                  ? "عليه فلوس"
+                                  : "متسوي"))
+                            : "متسوي"
                     })
                     .ToListAsync();
 
-                return View(clients);
+                var model = new ClientIndexViewModel
+                {
+                    Clients = clients
+                };
+
+                // Add transaction types to ViewData
+                ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
+                    .Cast<TransactionType>()
+                    .Select(t => new TransactionController.TransactionTypeViewModel
+                    {
+                        Id = (int)t,
+                        Name = TransactionController.GetEnumDisplayName(t)
+                    })
+                    .ToList();
+
+                return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "خطأ غير متوقع أثناء استرجاع قائمة العملاء. UserId: {UserId}", User.Identity.Name);
                 TempData["Error"] = "حدث خطأ غير متوقع، حاول لاحقًا";
-                return View(new List<object>());
+                return View(new ClientIndexViewModel { Clients = new List<ClientViewModel>() });
             }
         }
-
         // GET: /Client/Create
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new ClientViewModel());
         }
 
         // POST: /Client/Create
@@ -112,7 +164,7 @@ namespace Ledger__MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClientViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 return View(model);
             }
@@ -195,20 +247,20 @@ namespace Ledger__MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var model = new
+                var model = new ClientDetailsViewModel
                 {
-                    client.Id,
-                    client.Name,
-                    client.PhoneNumber,
-                    client.Email,
+                    Id = client.Id,
+                    Name = client.Name,
+                    PhoneNumber = client.PhoneNumber,
+                    Email = client.Email,
                     TransactionsCount = client.Transactions.Count,
-                    Transactions = client.Transactions.Select(t => new
+                    Transactions = client.Transactions.Select(t => new TransactionViewModel
                     {
-                        t.Id,
-                        t.Type,
-                        t.Amount,
-                        t.Date,
-                        t.Notes
+                        Id = t.Id,
+                        Type = t.Type,
+                        Amount = t.Amount,
+                        Date = t.Date,
+                        Notes = t.Notes
                     }).ToList()
                 };
 
@@ -258,7 +310,7 @@ namespace Ledger__MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateClientViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 return View(model);
             }
@@ -314,39 +366,7 @@ namespace Ledger__MVC.Controllers
             }
         }
 
-        // GET: /Client/Delete/{id}
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                _logger.LogWarning("المستخدم غير موجود. UserId: {UserId}", User.Identity.Name);
-                return NotFound("المستخدم غير موجود");
-            }
-
-            var client = await _context.Clients
-                .Include(c => c.Transactions)
-                .FirstOrDefaultAsync(c => c.Id == id && c.ApplicationUserId == user.Id);
-
-            if (client == null)
-            {
-                TempData["Error"] = "العميل غير موجود أو لا ينتمي لك";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var model = new
-            {
-                client.Id,
-                client.Name,
-                client.PhoneNumber,
-                client.Email
-            };
-
-            return View(model);
-        }
-
-        // POST: /Client/Delete/{id}
+        // POST: /Client/DeleteConfirmed/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -356,9 +376,7 @@ namespace Ledger__MVC.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
-                    _logger.LogWarning("المستخدم غير موجود. UserId: {UserId}", User.Identity.Name);
-                    TempData["Error"] = "المستخدم غير موجود";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "المستخدم غير موجود" });
                 }
 
                 var client = await _context.Clients
@@ -367,14 +385,12 @@ namespace Ledger__MVC.Controllers
 
                 if (client == null)
                 {
-                    TempData["Error"] = "العميل غير موجود أو لا ينتمي لك";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "العميل غير موجود أو لا ينتمي لك" });
                 }
 
                 if (client.Transactions.Any())
                 {
-                    TempData["Error"] = "لا يمكن حذف العميل لوجود معاملات مرتبطة به";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "لا يمكن حذف العميل لوجود معاملات مرتبطة به" });
                 }
 
                 _context.Clients.Remove(client);
@@ -388,14 +404,12 @@ namespace Ledger__MVC.Controllers
                 });
 
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "تم حذف العميل بنجاح";
-                return RedirectToAction("Index");
+                return Json(new { success = true, message = "تم حذف العميل بنجاح" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "خطأ أثناء حذف العميل. UserId: {UserId}", User.Identity.Name);
-                TempData["Error"] = "حدث خطأ، حاول لاحقًا";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
         }
     }

@@ -1,7 +1,186 @@
 ﻿@{
     ViewData["Title"] = "تجديد الاشتراك";
 }
-<h2>تجديد الاشتراك</h2>
-<p>انتهى اشتراكك، يرجى الدفع باستخدام الطرق التالية:</p>
-<p><strong>رقم فودافون كاش:</strong> @ViewData["VodafoneCashNumber"]</p>
-<img src="@ViewData["PaymentInstructionsImage"]" alt="تعليمات الدفع" />
+
+<style>
+    /* المتغيرات الأساسية للتصميم */
+    :root {
+        --primary-color: #4A90E2;
+        --secondary-color: #5C6F8D;
+        --background-light: #F4F7F6;
+        --card-background: #FFFFFF;
+        --text-dark: #333333;
+        --text-muted: #7F8C8D;
+        --border-color: #E0E6ED;
+        --shadow-light: rgba(0, 0, 0, 0.08);
+        --success-color: #2ECC71;
+        --warning-color: #F1C40F;
+        --info-color: #3498DB;
+        --danger-color: #E74C3C;
+        --border-radius: 12px;
+        --transition-speed: 0.3s ease-in-out;
+    }
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--background-light);
+        color: var(--text-dark);
+        direction: rtl;
+        text-align: right;
+    }
+
+    .card {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: 0 10px 25px var(--shadow-light);
+        transition: transform var(--transition-speed);
+        max-width: 600px; /* تقليل العرض الأقصى للبطاقة */
+        margin: 50px auto; /* توسيط البطاقة في الصفحة */
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-body {
+        padding: 30px; /* تقليل التعبئة الداخلية قليلاً */
+    }
+
+    h2 {
+        font-weight: 700;
+        color: var(--primary-color) !important;
+        margin-bottom: 20px;
+        font-size: 2em;
+    }
+
+    .alert {
+        border-radius: 8px;
+        padding: 12px 18px; /* تقليل التعبئة */
+        font-size: 1em;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .alert-warning {
+        background-color: #FFF3CD;
+        color: #856404;
+        border-color: #FFEBA5;
+    }
+
+    .alert-info {
+        background-color: #D9EDF7;
+        color: #31708F;
+        border-color: #C1E7F5;
+    }
+
+    .payment-details {
+        margin-bottom: 25px;
+        line-height: 1.7;
+    }
+
+        .payment-details strong {
+            color: var(--secondary-color);
+            font-weight: 600;
+            display: block; /* لجعل العنوان يأخذ سطرًا خاصًا به */
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+    .vodafone-cash-number {
+        color: var(--danger-color) !important;
+        font-weight: 700;
+        font-size: 1.2em;
+        background-color: #FEF3F2;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px dashed var(--danger-color);
+        display: inline-block; /* لكي لا يأخذ عرض كامل */
+        margin-top: 5px;
+        margin-bottom: 15px; /* مسافة بعد الرقم */
+    }
+
+    .support-numbers span {
+        display: inline-block;
+        font-size: 0.9em;
+        padding: 7px 11px;
+        border-radius: 20px;
+        font-weight: 600;
+        background-color: var(--success-color);
+        color: white;
+        margin-left: 8px;
+        margin-bottom: 5px;
+    }
+
+    .support-note {
+        font-size: 0.85em;
+        color: var(--text-muted) !important;
+        margin-top: 10px;
+        display: block;
+    }
+
+    .instruction-text {
+        margin-bottom: 25px;
+        color: var(--text-dark);
+        font-size: 1.05em;
+    }
+
+    .btn-whatsapp {
+        background-color: var(--success-color) !important;
+        border-color: var(--success-color) !important;
+        font-weight: 600;
+        padding: 12px 25px;
+        font-size: 1.1em;
+        border-radius: 50px !important;
+        transition: all var(--transition-speed);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-whatsapp:hover {
+            background-color: #28A745 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-whatsapp::before {
+            content: "\f232";
+            font-family: 'Font Awesome 5 Brands';
+            margin-left: 10px;
+            font-size: 1.2em;
+        }
+</style>
+
+<div class="container">
+    <div class="card text-center">
+        <div class="card-body">
+            <h2 class="text-primary">تجديد الاشتراك</h2>
+
+            <p class="alert alert-warning">انتهى اشتراكك. يرجى التجديد كالتالي:</p>
+
+            <div class="payment-details">
+                <strong>طرق الدفع:</strong>
+                <span class="vodafone-cash-number d-block">@ViewData["VodafoneCashNumber"]</span>
+
+                <strong>للتأكيد والدعم الفني (واتساب فقط):</strong>
+                <div class="support-numbers">
+                    <span class="badge bg-success">01111301392</span>
+                    <span class="badge bg-success">011113013876</span>
+                </div>
+                <small class="support-note">يرجى التواصل عبر هذه الأرقام فقط</small>
+            </div>
+
+            <p class="instruction-text">
+                بعد الدفع، أرسل **صورة التحويل (Screenshot)** عبر واتساب لتفعيل حسابك تلقائيًا.
+            </p>
+
+            <a href="https://wa.me/201111301392" target="_blank" class="btn btn-success btn-whatsapp">
+                تواصل مع الدعم عبر واتساب
+            </a>
+
+            <div class="alert alert-info mt-4">
+                تواصل آمن وسريع عبر الدعم الرسمي فقط.
+            </div>
+        </div>
+    </div>
+</div>

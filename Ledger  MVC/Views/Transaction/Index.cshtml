@@ -1,112 +1,670 @@
-﻿@model List<Ledger__MVC.Controllers.TransactionController.TransactionViewModel>
+﻿@model dynamic
 @{
     ViewData["Title"] = "إدارة المعاملات";
 }
 
-<div class="container mt-4">
-    <h2>إدارة المعاملات</h2>
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #0ea5e9;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
 
-    <!-- Search and Filter Section -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="row">
-            <div class="col-md-4">
-                <select name="clientId" class="form-control">
-                    <option value="">كل العملاء</option>
-                    @foreach (var client in ViewData["Clients"] as List<dynamic>)
-                    {
-                        <option value="@client.Id" selected="@(ViewData["CurrentClientId"]?.ToString() == client.Id.ToString() ? "selected" : "")">@client.Name</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">تصفية</button>
-                <a asp-action="Create" class="btn btn-success">إضافة معاملة</a>
-            </div>
-        </div>
-    </form>
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
-    <!-- Transactions Table -->
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>العميل</th>
-                <th>نوع المعاملة</th>
-                <th>المبلغ</th>
-                <th>التاريخ</th>
-                <th>ملاحظات</th>
-                <th>الإجراءات</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transaction in Model)
-            {
-                <tr>
-                    <td>@transaction.ClientName</td>
-                    <td>@transaction.TypeDisplayName</td>
-                    <td>@transaction.Amount.ToString("C")</td>
-                    <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
-                    <td>@(string.IsNullOrEmpty(transaction.Notes) ? "-" : transaction.Notes)</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@transaction.Id" class="btn btn-sm btn-info">تفاصيل</a>
-                        <a asp-action="Update" asp-route-id="@transaction.Id" class="btn btn-sm btn-primary">تعديل</a>
-                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal-@transaction.Id">حذف</button>
-                    </td>
-                </tr>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+    }
 
-                <!-- Delete Modal -->
-                <div class="modal fade" id="deleteModal-@transaction.Id" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">تأكيد حذف المعاملة</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>هل أنت متأكد من رغبتك في حذف المعاملة للعميل <strong>@transaction.ClientName</strong> بقيمة <strong>@transaction.Amount.ToString("C")</strong>؟</p>
-                            </div>
-                            <div class="modal-footer">
-                                <form asp-action="DeleteConfirmed" asp-route-id="@transaction.Id" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger">حذف</button>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </tbody>
-    </table>
+    /* حاوية الصفحة */
+    .transactions-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
-    <!-- Success/Error Messages -->
+    /* عنوان الصفحة */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* رسائل النجاح والخطأ */
+    .alert {
+        border: none;
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: var(--shadow-md);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+        border-left: 4px solid var(--success);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #991b1b;
+        border-left: 4px solid var(--danger);
+    }
+
+    .alert::before {
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 1.2rem;
+    }
+
+    .alert-success::before {
+        content: '\f058'; /* check-circle */
+    }
+
+    .alert-danger::before {
+        content: '\f06a'; /* exclamation-circle */
+    }
+
+    /* قسم الفلترة */
+    .filter-section {
+        background: var(--bg-card);
+        padding: 2rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+    .filter-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-select {
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* جدول المعاملات */
+    .table-container {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, var(--secondary), #ffffff);
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .table-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .custom-table th {
+        background: var(--primary);
+        color: white;
+        padding: 1rem;
+        font-weight: 600;
+        text-align: center;
+        border-bottom: 2px solid var(--primary-dark);
+        position: relative;
+    }
+
+    .custom-table th::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+
+    .custom-table td {
+        padding: 1rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr {
+        transition: var(--transition);
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+        transform: scale(1.01);
+    }
+
+    .custom-table tbody tr:nth-child(even) {
+        background-color: rgba(241, 245, 249, 0.5);
+    }
+
+    /* أزرار الإجراءات */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: var(--transition);
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-info {
+        background: var(--info);
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #0284c7;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+    }
+
+    /* رسالة عدم وجود بيانات */
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--text-muted);
+    }
+
+    /* مودال الحذف */
+    .modal-content {
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-body {
+        padding: 2rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg-secondary);
+    }
+
+    .modal-footer .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: var(--radius);
+    }
+
+    /* تنسيق خاص للأنواع */
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .type-credit {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .type-debit {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* تنسيق المبالغ */
+    .amount-display {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .amount-credit {
+        color: var(--success);
+    }
+
+    .amount-debit {
+        color: var(--danger);
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 768px) {
+        .transactions-container {
+            padding: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .custom-table {
+            font-size: 0.9rem;
+        }
+
+        .custom-table th,
+        .custom-table td {
+            padding: 0.5rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .action-btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .custom-table {
+            font-size: 0.8rem;
+        }
+
+        .filter-section {
+            padding: 1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<div class="transactions-container">
+    <!-- عنوان الصفحة -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-exchange-alt"></i>
+            إدارة المعاملات
+        </h1>
+        <div class="page-subtitle">إدارة وتتبع جميع المعاملات المالية</div>
+    </div>
+
+    <!-- رسائل النجاح والخطأ -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             @TempData["Success"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">×</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">×</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    <!-- قسم الفلترة -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            تصفية المعاملات
+        </div>
+        <form asp-action="Index" method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <select name="clientId" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="">جميع العملاء</option>
+                    @foreach (var client in ViewData["Clients"] as List<Ledger__MVC.Controllers.TransactionController.ClientSelectViewModel>)
+                    {
+                        <option value="@client.Id" selected="@(Model.ClientId == client.Id ? "selected" : null)">@client.Name</option>
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- جدول المعاملات -->
+    <div class="table-container">
+        <div class="table-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                قائمة المعاملات
+            </h3>
+        </div>
+        
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i> العميل</th>
+                    <th><i class="fas fa-tag"></i> نوع المعاملة</th>
+                    <th><i class="fas fa-money-bill-wave"></i> المبلغ</th>
+                    <th><i class="fas fa-calendar"></i> التاريخ</th>
+                    <th><i class="fas fa-sticky-note"></i> الملاحظات</th>
+                    <th><i class="fas fa-cogs"></i> الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Transactions != null && Model.Transactions.Count > 0)
+                {
+                    @foreach (var transaction in Model.Transactions)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@transaction.ClientName</strong>
+                            </td>
+                            <td>
+                                <span class="transaction-type @(transaction.TypeDisplayName.Contains("دائن") ? "type-credit" : "type-debit")">
+                                    <i class="fas @(transaction.TypeDisplayName.Contains("دائن") ? "fa-arrow-up" : "fa-arrow-down")"></i>
+                                    @transaction.TypeDisplayName
+                                </span>
+                            </td>
+                            <td>
+                                <span class="amount-display @(transaction.TypeDisplayName.Contains("دائن") ? "amount-credit" : "amount-debit")">
+                                    @transaction.Amount.ToString("N2") ج.م
+                                </span>
+                            </td>
+                            <td>@transaction.Date.ToString("yyyy/MM/dd")</td>
+                            <td>@(string.IsNullOrEmpty(transaction.Notes) ? "-" : transaction.Notes)</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Details" asp-route-id="@transaction.Id" class="action-btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                        تفاصيل
+                                    </a>
+                                    <a asp-action="Update" asp-route-id="@transaction.Id" class="action-btn btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                        تعديل
+                                    </a>
+                                    <button type="button" class="action-btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            data-transaction-id="@transaction.Id" data-transaction-client="@transaction.ClientName">
+                                        <i class="fas fa-trash"></i>
+                                        حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            <i class="fas fa-inbox"></i>
+                            <div>لا توجد معاملات متاحة</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    تأكيد الحذف
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من حذف المعاملة للعميل <strong id="deleteTransactionClient"></strong>؟</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning"></i>
+                    هذا الإجراء لا يمكن التراجع عنه.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash"></i>
+                    حذف
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('.modal').on('shown.bs.modal', function () {
-                $(this).find('[autofocus]').focus();
+            // Initialize Delete Modal
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var transactionId = button.data('transaction-id');
+                var clientName = button.data('transaction-client');
+                var modal = $(this);
+                modal.find('#deleteTransactionClient').text(clientName);
+                modal.find('#confirmDelete').data('transaction-id', transactionId);
             });
+
+            // Handle Delete Confirmation
+            $('#confirmDelete').click(function () {
+                var transactionId = $(this).data('transaction-id');
+                $.ajax({
+                    url: '@Url.Action("DeleteConfirmed", "Transaction")',
+                    type: 'POST',
+                    data: { id: transactionId },
+                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#deleteModal').modal('hide');
+                            // Show success message with animation
+                            $('body').prepend('<div class="alert alert-success alert-dismissible fade show animated-alert" role="alert">' +
+                                '<i class="fas fa-check-circle"></i> ' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                            
+                            // Remove the deleted row with animation
+                            $('tr').has('button[data-transaction-id="' + transactionId + '"]').fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                            
+                            // Auto-hide success message after 5 seconds
+                            setTimeout(function() {
+                                $('.animated-alert').alert('close');
+                            }, 5000);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('حدث خطأ أثناء معالجة الطلب');
+                    }
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
         });
     </script>
 }

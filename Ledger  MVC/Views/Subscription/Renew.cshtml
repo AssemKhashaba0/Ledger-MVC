@@ -1,52 +1,181 @@
 ﻿@model Ledger__MVC.Controllers.SubscriptionController.RenewSubscriptionViewModel
 @{
     ViewData["Title"] = "تجديد الاشتراك";
+    Layout = "/Views/shared/_Layoutdashboard.cshtml";
 }
 
-<div class="container mt-4">
-    <h2>تجديد الاشتراك لـ @ViewData["FullName"]</h2>
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --sidebar-width: 260px;
+        --sidebar-collapsed: 60px;
+        --header-height: 64px;
+        --transition: 0.3s ease;
+    }
 
-    <form asp-action="Renew" asp-route-userId="@ViewData["UserId"]" method="post">
-        @Html.AntiForgeryToken()
-        <div class="form-group">
-            <label asp-for="SubscriptionType">نوع الاشتراك</label>
-            <select asp-for="SubscriptionType" class="form-control" asp-items="@(new SelectList(ViewData["SubscriptionTypes"] as List<dynamic>, "Id", "Name"))">
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    h2 {
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border-color: var(--border);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        background-color: var(--bg-primary);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+        background-color: var(--bg-primary);
+    }
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary);
+        border-color: var(--border);
+        color: var(--text-primary);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    .btn-secondary:hover {
+        background-color: var(--border);
+        border-color: var(--text-muted);
+    }
+
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border-color: var(--danger);
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .text-danger {
+        color: var(--danger) !important;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .card-container {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        padding: 2rem;
+        max-width: 600px; /* Limit width for better form readability */
+        margin: 0 auto; /* Center the card */
+    }
+
+    /* Adjustments for smaller screens */
+    @@media (max-width: 575.98px) {
+        .card-container {
+            padding: 1.5rem;
+        }
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem !important; /* Adjust spacing */
+        }
+    }
+</style>
+
+<h2>تجديد الاشتراك لـ <span style="color: var(--primary-dark);">@Model.FullName</span></h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="card-container">
+    <form asp-action="Renew" asp-route-userId="@Model.UserId" method="post">
+        @Html.AntiForgeryToken() @* Add Anti-Forgery Token for security *@
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="SubscriptionType" class="control-label">نوع الاشتراك</label>
+            <select asp-for="SubscriptionType" class="form-select">
                 <option value="">اختر نوع الاشتراك</option>
+                @foreach (var type in Model.SubscriptionTypes)
+                {
+                    <option value="@type.Id">@type.Name</option>
+                }
             </select>
             <span asp-validation-for="SubscriptionType" class="text-danger"></span>
         </div>
-        <div class="form-group">
-            <label asp-for="SubscriptionStartDate">تاريخ البداية</label>
+
+        <div class="form-group mb-3">
+            <label asp-for="SubscriptionStartDate" class="control-label">تاريخ بدء الاشتراك</label>
             <input asp-for="SubscriptionStartDate" class="form-control" type="date" />
             <span asp-validation-for="SubscriptionStartDate" class="text-danger"></span>
         </div>
-        <div class="form-group">
-            <label asp-for="SubscriptionEndDate">تاريخ الانتهاء</label>
-            <input asp-for="SubscriptionEndDate" class="form-control" type="date" />
-            <span asp-validation-for="SubscriptionEndDate" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Price">السعر</label>
-            <input asp-for="Price" class="form-control" type="number" step="0.01" />
+
+        <div class="form-group mb-3">
+            <label asp-for="Price" class="control-label">السعر</label>
+            <input asp-for="Price" class="form-control" />
             <span asp-validation-for="Price" class="text-danger"></span>
         </div>
-        <div class="form-group">
-            <label asp-for="PaymentNote">ملاحظات الدفع</label>
-            <textarea asp-for="PaymentNote" class="form-control"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">تجديد الاشتراك</button>
-        <a asp-action="Index" class="btn btn-secondary">إلغاء</a>
-    </form>
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <div class="form-group mb-4">
+            <label asp-for="PaymentNote" class="control-label">ملاحظات الدفع</label>
+            <textarea asp-for="PaymentNote" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="PaymentNote" class="text-danger"></span>
         </div>
-    }
+
+        <div class="d-flex justify-content-end gap-2">
+            <input type="submit" value="حفظ" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">رجوع</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {

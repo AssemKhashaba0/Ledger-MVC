@@ -2,7 +2,233 @@
 @{
     ViewData["Title"] = "تفاصيل الاشتراك";
 }
-<h2>تفاصيل الاشتراك</h2>
-<p><strong>نوع الاشتراك:</strong> @Model.SubscriptionType</p>
-<p><strong>تاريخ انتهاء الاشتراك:</strong> @Model.SubscriptionEndDate</p>
-<p><strong>الأيام المتبقية:</strong> @Model.DaysRemaining</p>
+
+<link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@6.4.2/css/all.min.css" rel="stylesheet" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+
+    h2 {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    h3 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .card-header {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .card-text {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Countdown Styling */
+    .countdown {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .countdown-item {
+        background-color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        text-align: center;
+        min-width: 80px;
+    }
+
+        .countdown-item span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .countdown-item label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+    /* Warning for Expired Subscription */
+    .alert-warning {
+        background-color: var(--warning);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 767.98px) {
+        .countdown {
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            min-width: 60px;
+        }
+
+        .container {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fas fa-user-clock me-2"></i> تفاصيل الاشتراك</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-subscription"></i> معلومات الاشتراك</div>
+                <div class="card-body">
+                    @if (Model.DaysRemaining <= 0)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> اشتراكك منتهي، يرجى تجديد الاشتراك.
+                        </div>
+                    }
+                    <h5 class="card-title">نوع الاشتراك: <span class="badge bg-primary">@Model.SubscriptionType</span></h5>
+                    <p class="card-text">تاريخ الانتهاء: @Model.SubscriptionEndDate</p>
+                    <p class="card-text">اليوم: @DateTime.Now.ToString("dddd, yyyy-MM-dd", new System.Globalization.CultureInfo("ar-EG"))</p>
+                    <p class="card-text">الأيام المتبقية: @Model.DaysRemaining يوم</p>
+                    @if (Model.DaysRemaining > 0)
+                    {
+                        <h3 class="mt-4">الوقت المتبقي</h3>
+                        <div class="countdown" id="countdown">
+                            <div class="countdown-item">
+                                <span id="days">0</span>
+                                <label>أيام</label>
+                            </div>
+                            <div class="countdown-item">
+                                <span id="hours">0</span>
+                                <label>ساعات</label>
+                            </div>
+                            <div class="countdown-item">
+                                <span id="minutes">0</span>
+                                <label>دقائق</label>
+                            </div>
+                            <div class="countdown-item">
+                                <span id="seconds">0</span>
+                                <label>ثوان</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Countdown Timer
+        function startCountdown(endDate) {
+            const end = new Date(endDate).getTime();
+
+            const countdown = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = end - now;
+
+                if (distance <= 0) {
+                    clearInterval(countdown);
+                    document.getElementById('countdown').innerHTML = '<div class="alert alert-warning">اشتراكك منتهي!</div>';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('minutes').textContent = minutes;
+                document.getElementById('seconds').textContent = seconds;
+            }, 1000);
+        }
+
+        // Start countdown with the subscription end date
+        window.onload = function () {
+            const endDate = '@Model.SubscriptionEndDate';
+            if (@Model.DaysRemaining > 0) {
+                startCountdown(endDate);
+            }
+        };
+    </script>
+}

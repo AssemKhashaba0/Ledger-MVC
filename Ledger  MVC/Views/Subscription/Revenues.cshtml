@@ -1,0 +1,394 @@
+﻿@model Ledger__MVC.Controllers.SubscriptionController.RevenueViewModel
+@{
+    ViewData["Title"] = "الإيرادات";
+    Layout = "/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@6.4.2/css/all.min.css" rel="stylesheet" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+
+    h2 {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    h3 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .card-header {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card.bg-success .card-header {
+        background-color: var(--success);
+    }
+
+    .card.bg-info .card-header {
+        background-color: var(--primary-light);
+        color: var(--text-primary);
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+        color: var(--text-primary);
+    }
+
+    /* Table Styling */
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead th {
+            background-color: var(--secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 0.75rem;
+            border-bottom: 2px solid var(--border);
+            text-align: right;
+        }
+
+        .table tbody td {
+            padding: 0.75rem;
+            border-top: 1px solid var(--border);
+            text-align: right;
+        }
+
+        .table tbody tr:nth-of-type(odd) {
+            background-color: var(--bg-primary);
+        }
+
+        .table tbody tr:nth-of-type(even) {
+            background-color: var(--bg-secondary);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--primary-light);
+        }
+
+    /* Badges */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .badge.bg-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+    /* Chart Styling */
+    #revenueChart {
+        width: 100%;
+        max-width: 600px;
+        height: 300px;
+        margin: 1.5rem auto;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Pagination */
+    .pagination {
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .pagination .page-link {
+            color: var(--primary);
+            border: 1px solid var(--border);
+            margin: 0 0.2rem;
+            border-radius: var(--radius);
+            transition: background-color var(--transition), color var(--transition);
+        }
+
+            .pagination .page-link:hover {
+                background-color: var(--primary-light);
+                color: var(--primary-dark);
+            }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 767.98px) {
+        .col-md-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .container {
+            padding: 1rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            min-width: 500px;
+        }
+
+        #revenueChart {
+            max-width: 100%;
+            height: 250px;
+        }
+    }
+</style>
+
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fas fa-money-bill-wave me-2"></i> الإيرادات</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary mb-3">
+                <div class="card-header"><i class="fas fa-coins"></i> الإيرادات اليومية</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.DailyRevenue.ToString("N2", new System.Globalization.CultureInfo("ar-EG")) جنيه مصري</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success mb-3">
+                <div class="card-header"><i class="fas fa-money-check-alt"></i> الإيرادات الشهرية</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.MonthlyRevenue.ToString("N2", new System.Globalization.CultureInfo("ar-EG")) جنيه مصري</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info mb-3">
+                <div class="card-header"><i class="fas fa-wallet"></i> الإيرادات السنوية</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.YearlyRevenue.ToString("N2", new System.Globalization.CultureInfo("ar-EG")) جنيه مصري</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mt-4"><i class="fas fa-table me-2"></i> تفاصيل الإيرادات</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>اسم المستخدم</th>
+                    <th>نوع الاشتراك</th>
+                    <th>السعر</th>
+                    <th>تاريخ البدء</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int pageSize = 10;
+                    int pageNumber = ViewData["PageNumber"] != null ? (int)ViewData["PageNumber"] : 1;
+                    var pagedDetails = Model.RevenueDetails.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+                    int totalPages = (int)Math.Ceiling((double)Model.RevenueDetails.Count / pageSize);
+                }
+                @foreach (var detail in pagedDetails)
+                {
+                    <tr>
+                        <td>@detail.UserName</td>
+                        <td><span class="badge bg-primary">@detail.SubscriptionType</span></td>
+                        <td>@detail.Price.ToString("N2", new System.Globalization.CultureInfo("ar-EG")) جنيه مصري</td>
+                        <td>@detail.StartDate.ToString("yyyy-MM-dd", new System.Globalization.CultureInfo("ar-EG"))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        <nav aria-label="Revenue details pagination">
+            <ul class="pagination">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == pageNumber ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Revenues", new { page = i })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+
+    
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['يومي', 'شهري', 'سنوي'],
+                datasets: [{
+                    label: 'الإيرادات (جنيه مصري)',
+                    data: [@Model.DailyRevenue, @Model.MonthlyRevenue, @Model.YearlyRevenue],
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.7)', // primary
+                        'rgba(16, 185, 129, 0.7)', // success
+                        'rgba(165, 180, 252, 0.7)'  // primary-light
+                    ],
+                    borderColor: [
+                        'var(--primary-dark)',
+                        '#0d926b',
+                        'var(--primary)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: 'Segoe UI'
+                            },
+                            color: 'var(--text-primary)',
+                            boxWidth: 20
+                        },
+                        rtl: true,
+                        textDirection: 'rtl'
+                    },
+                    tooltip: {
+                        enabled: true,
+                        rtl: true,
+                        textDirection: 'rtl',
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: 'var(--text-secondary)',
+                            font: {
+                                size: 12,
+                                family: 'Segoe UI'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.3)',
+                            borderColor: 'var(--border)'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'المبلغ (جنيه مصري)',
+                            color: 'var(--text-primary)',
+                            font: {
+                                size: 14,
+                                family: 'Segoe UI',
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            color: 'var(--text-secondary)',
+                            font: {
+                                size: 12,
+                                family: 'Segoe UI'
+                            },
+                            callback: function (value) {
+                                return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(value);
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.3)',
+                            borderColor: 'var(--border)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,684 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - لوحة التحكم الإدارية</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5NVaZT/gbhQpmSDFVp/E7-TzSgwebyXhWnMDRhlfrjXj/prBND4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+        /* متغيرات الألوان المطلوبة */
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 60px;
+            --header-height: 64px;
+            --transition: 0.3s ease;
+        }
+
+        /* إعداد عام */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            direction: rtl;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* تخطيط رئيسي */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* السايد بار */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-primary);
+            border-left: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition);
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        /* لوجو السايد بار */
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all var(--transition);
+        }
+
+        .sidebar-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            object-fit: cover;
+        }
+
+        .sidebar-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity var(--transition);
+        }
+
+        .sidebar.collapsed .sidebar-logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* قائمة السايد بار */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            margin: 0 0.5rem;
+            position: relative;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--secondary);
+            color: var(--primary);
+            transform: translateX(-3px);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-left: 3px solid var(--primary);
+        }
+
+        .sidebar-nav a i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav a span {
+            white-space: nowrap;
+            transition: opacity var(--transition);
+        }
+
+        .sidebar.collapsed .sidebar-nav a span {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+        /* زر الطي */
+        .sidebar-toggle {
+            position: absolute;
+            top: 1rem;
+            left: -15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all var(--transition);
+            z-index: 11;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            transition: margin-right var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content.expanded {
+            margin-right: var(--sidebar-collapsed);
+        }
+
+        /* الهيدر العلوي */
+        .main-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--secondary);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+
+        .user-menu:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        /* منطقة المحتوى */
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* الشاشات المحمولة */
+        @@media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+                width: 280px;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .main-content.expanded {
+                margin-right: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--text-primary);
+                cursor: pointer;
+                padding: 0.5rem;
+                border-radius: var(--radius);
+                transition: all var(--transition);
+            }
+
+            .mobile-menu-btn:hover {
+                background: var(--secondary);
+                color: var(--primary);
+            }
+
+            .sidebar-toggle {
+                display: none;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            /* تأكد من ظهور الأيقونات في الجوال */
+            .sidebar.show .sidebar-nav a span {
+                opacity: 1;
+                width: auto;
+            }
+
+            .sidebar.show .sidebar-section-title {
+                opacity: 1;
+                height: auto;
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        @@media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        /* أسلوب الاختيار للروابط النشطة */
+        .sidebar-nav a.active::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--primary);
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* تحسينات إضافية */
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0;
+        }
+
+        .sidebar-section-title {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar.collapsed .sidebar-section-title {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+        }
+
+        /* تأثيرات التمرير */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* تنسيق الفورم */
+        .form-inline {
+            display: inline;
+        }
+
+        .form-inline .btn-link {
+            background: none;
+            border: none;
+            color: inherit;
+            text-decoration: none;
+            padding: 0;
+            font-size: inherit;
+            cursor: pointer;
+        }
+
+        /* overlay للشاشات الصغيرة */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* بطاقة المرحبا */
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .welcome-card h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-card p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- السايد بار -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="~/IMG/ASVS Logo.png" alt="Logo">
+                    <span class="sidebar-logo-text">لوحة التحكم</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <ul>
+                        <li class="sidebar-section-title">القائمة الرئيسية</li>
+                        <li>
+                            <a href="@Url.Action("Dashboard", "User")" class="active">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>لوحة التحكم</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Overview", "User")">
+                                <i class="fas fa-chart-line"></i>
+                                <span>نظرة عامة</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Revenues", "Subscription")">
+                                <i class="fas fa-chart-line"></i>
+                                <span>الايرادات</span>
+                            </a>
+                        </li>
+
+                        <div class="sidebar-divider"></div>
+                        
+                        <li class="sidebar-section-title">إدارة المستخدمين</li>
+                        <li>
+                            <a href="@Url.Action( "index","User")">
+                                <i class="fas fa-user-plus"></i>
+                                <span>المستخدمين</span>
+                            </a>
+                        </li>
+                        
+                        
+                        <div class="sidebar-divider"></div>
+                        
+                        <li class="sidebar-section-title">الاشتراكات </li>
+                        <li>
+                            <a href="@Url.Action("index","subscription")">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>كل الاشتراكات</span>
+                            </a>
+                        </li>
+                        
+                        
+                     
+                        
+                        <div class="sidebar-divider"></div>
+                        
+                        <li class="sidebar-section-title">الإعدادات</li>
+                        <li>
+                            <a href="@Url.Action("UpdatePassword","Auth")">
+                                <i class="fas fa-user-cog"></i>
+                                <span>تغير كلمه السر</span>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                }
+            </nav>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content" id="mainContent">
+            <!-- الهيدر العلوي -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="header-title">@ViewData["Title"]</h1>
+                </div>
+                
+                <div class="header-actions">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })" class="user-menu">
+                            <i class="fas fa-user-circle"></i>
+                            <span>مرحباً @UserManager.GetUserName(User)</span>
+                        </a>
+                        
+                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                تسجيل خروج
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a href="/Auth/Login" class="user-menu">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>تسجيل دخول</span>
+                        </a>
+                    }
+                </div>
+            </header>
+
+            <!-- منطقة المحتوى -->
+            <div class="content-area">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    @if (ViewData["Title"] == null || ViewData["Title"].ToString() == "Home")
+                    {
+                        <div class="welcome-card">
+                            <h1>مرحباً بك في لوحة التحكم</h1>
+                            <p>إدارة شاملة لحساباتك ومعاملاتك المالية</p>
+                        </div>
+                    }
+                }
+                
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay للشاشات الصغيرة -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // إدارة السايد بار
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        // طي وفتح السايد بار في الشاشات الكبيرة
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.className = 'fas fa-chevron-right';
+            } else {
+                icon.className = 'fas fa-chevron-left';
+            }
+        });
+
+        // قائمة الجوال
+        mobileMenuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+            
+            // تغيير الأيقونة
+            const icon = mobileMenuBtn.querySelector('i');
+            if (sidebar.classList.contains('show')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+
+        // إغلاق القائمة عند النقر على الـ overlay
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+            
+            // إعادة تعيين الأيقونة
+            const icon = mobileMenuBtn.querySelector('i');
+            icon.className = 'fas fa-bars';
+        });
+
+        // تحديد الرابط النشط
+        const currentPath = window.location.pathname;
+        const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+        
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+
+        // إغلاق القائمة عند النقر على رابط في الجوال
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                    
+                    // إعادة تعيين الأيقونة
+                    const icon = mobileMenuBtn.querySelector('i');
+                    icon.className = 'fas fa-bars';
+                }
+            });
+        });
+
+        // إعادة تعيين السايد بار عند تغيير حجم الشاشة
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+                
+                // إعادة تعيين الأيقونة
+                const icon = mobileMenuBtn.querySelector('i');
+                icon.className = 'fas fa-bars';
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

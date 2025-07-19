@@ -1,180 +1,402 @@
-﻿@model List<Ledger__MVC.Controllers.SubscriptionController.UserListViewModel>
+﻿@model Ledger__MVC.Controllers.SubscriptionController.SubscriptionIndexViewModel
 @{
     ViewData["Title"] = "إدارة الاشتراكات";
+    Layout = "/Views/shared/_Layoutdashboard.cshtml";
 }
 
-<div class="container mt-4">
-    <h2>إدارة الاشتراكات</h2>
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --sidebar-width: 260px;
+        --sidebar-collapsed: 60px;
+        --header-height: 64px;
+        --transition: 0.3s ease;
+    }
 
-    <!-- Search and Filter Section -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="row">
-            <div class="col-md-4">
-                <input type="text" name="search" class="form-control" placeholder="البحث بالاسم أو رقم الهاتف" value="@ViewData["CurrentSearch"]" />
-            </div>
-            <div class="col-md-3">
-                <select name="subscriptionType" class="form-control">
-                    <option value="">كل أنواع الاشتراكات</option>
-                    @foreach (var type in ViewData["SubscriptionTypes"] as List<dynamic>)
-                    {
-                        <option value="@type.Id" selected="@(ViewData["CurrentSubscriptionType"]?.ToString() == type.Id.ToString() ? "selected" : "")">@type.Name</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="isActive" class="form-control">
-                    <option value="">الكل</option>
-                    <option value="true" selected="@(ViewData["CurrentIsActive"]?.ToString() == "true" ? "selected" : "")">نشط</option>
-                    <option value="false" selected="@(ViewData["CurrentIsActive"]?.ToString() == "false" ? "selected" : "")">منتهي</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">بحث</button>
-            </div>
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    h2 {
+        color: var(--text-primary);
+    }
+
+    .form-control, .form-select {
+        border-color: var(--border);
+        color: var(--text-primary);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .btn-success {
+        background-color: var(--success);
+        border-color: var(--success);
+    }
+    .btn-success:hover {
+        background-color: #0d926b; /* A darker shade of success */
+        border-color: #0d926b;
+    }
+
+    .btn-warning {
+        background-color: var(--warning);
+        border-color: var(--warning);
+        color: var(--text-primary); /* Ensuring text is visible */
+    }
+    .btn-warning:hover {
+        background-color: #e68a00; /* A darker shade of warning */
+        border-color: #e68a00;
+    }
+
+    .btn-danger {
+        background-color: var(--danger);
+        border-color: var(--danger);
+    }
+    .btn-danger:hover {
+        background-color: #d13737; /* A darker shade of danger */
+        border-color: #d13737;
+    }
+
+    .alert-success {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border-color: var(--success);
+    }
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .subscription-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        color: var(--primary-dark);
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-text {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .card-text strong {
+        color: var(--text-primary);
+    }
+
+    .card-actions {
+        margin-top: 1rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .status-active {
+        color: var(--success);
+        font-weight: bold;
+    }
+    .status-expired {
+        color: var(--danger);
+        font-weight: bold;
+    }
+    .status-blocked {
+        color: var(--warning);
+        font-weight: bold;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 767.98px) {
+        .col-md-4, .col-md-3, .col-md-2 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<h2>إدارة الاشتراكات</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="mb-4 p-3 rounded shadow-sm" style="background-color: var(--bg-card); border: 1px solid var(--border);">
+    <form asp-action="Index" method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label for="search" class="form-label text-muted">البحث</label>
+            <input type="text" name="search" value="@Model.CurrentSearch" class="form-control" placeholder="ابحث بالاسم أو رقم الهاتف" />
+        </div>
+        <div class="col-md-3">
+            <label for="isActive" class="form-label text-muted">الحالة</label>
+            <select name="isActive" class="form-control">
+                <option value="">الكل</option>
+                <option value="true" selected="@(Model.CurrentIsActive == "true")">نشط</option>
+                <option value="false" selected="@(Model.CurrentIsActive == "false")">منتهي</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="subscriptionType" class="form-label text-muted">نوع الاشتراك</label>
+            <select name="subscriptionType" class="form-control">
+                <option value="">جميع أنواع الاشتراك</option>
+                @foreach (var type in Model.SubscriptionTypes)
+                {
+                    <option value="@type.Id" selected="@(Model.CurrentSubscriptionType == type.Id.ToString())">@type.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">بحث</button>
         </div>
     </form>
+</div>
 
-    <!-- Users Table -->
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>الاسم الكامل</th>
-                <th>رقم الهاتف</th>
-                <th>نوع الاشتراك</th>
-                <th>تاريخ الانتهاء</th>
-                <th>الحالة</th>
-                <th>عدد العملاء</th>
-                <th>عدد المعاملات</th>
-                <th>الإجراءات</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>@user.FullName</td>
-                    <td>@user.PhoneNumber</td>
-                    <td>@user.SubscriptionType</td>
-                    <td>@user.SubscriptionEndDate.ToString("yyyy-MM-dd")</td>
-                    <td>@user.Status</td>
-                    <td>@user.ClientCount</td>
-                    <td>@user.TransactionCount</td>
-                    <td>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    @if (!Model.Users.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-info text-center" role="alert">
+                لا توجد اشتراكات لعرضها.
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var user in Model.Users)
+        {
+            <div class="col">
+                <div class="subscription-card">
+                    <h5 class="card-title">@user.FullName</h5>
+                    <p class="card-text"><strong>رقم الهاتف:</strong> @user.PhoneNumber</p>
+                    <p class="card-text"><strong>نوع الاشتراك:</strong> @user.SubscriptionType</p>
+                    <p class="card-text"><strong>تاريخ الانتهاء:</strong> @user.SubscriptionEndDate.ToString("yyyy-MM-dd")</p>
+                    <p class="card-text">
+                        <strong>الحالة:</strong>
+                        <span class="@(user.Status == "نشط" ? "status-active" : user.Status == "منتهي" ? "status-expired" : "status-blocked")">
+                            @user.Status
+                        </span>
+                    </p>
+                    <p class="card-text"><strong>الأيام المتبقية:</strong> @(user.RemainingDays > 0 ? user.RemainingDays + " يوم" : "-")</p>
+                    <p class="card-text"><strong>عدد العملاء:</strong> @user.ClientCount</p>
+                    <p class="card-text"><strong>عدد المعاملات:</strong> @user.TransactionCount</p>
+                    <p class="card-text"><strong>آخر ظهور:</strong> @(user.LastSeen == DateTime.MinValue ? "-" : user.LastSeen.ToString("yyyy-MM-dd HH:mm"))</p>
+
+                    <div class="card-actions">
                         <a asp-action="UpdatePlan" asp-route-userId="@user.Id" class="btn btn-sm btn-primary">تعديل</a>
                         <a asp-action="Renew" asp-route-userId="@user.Id" class="btn btn-sm btn-success">تجديد</a>
-                        @if (user.Status == "نشط")
+                        @if (user.Status == "محظور")
                         {
-                            <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#blockModal-@user.Id">حظر</button>
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#unblockModal" data-user-id="@user.Id" data-full-name="@user.FullName">إلغاء الحظر</button>
                         }
                         else
                         {
-                            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#unblockModal-@user.Id">إلغاء الحظر</button>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#blockModal" data-user-id="@user.Id" data-full-name="@user.FullName">حظر</button>
                         }
-                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal-@user.Id">حذف</button>
-                    </td>
-                </tr>
-
-                <!-- Block Modal -->
-                <div class="modal fade" id="blockModal-@user.Id" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">تأكيد حظر المستخدم</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>هل أنت متأكد من رغبتك في حظر حساب المستخدم <strong>@user.FullName</strong>؟</p>
-                            </div>
-                            <div class="modal-footer">
-                                <form asp-action="BlockConfirmed" asp-route-userId="@user.Id" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-warning">حظر</button>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                                </form>
-                            </div>
-                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-user-id="@user.Id" data-full-name="@user.FullName">حذف</button>
                     </div>
                 </div>
-
-                <!-- Unblock Modal -->
-                <div class="modal fade" id="unblockModal-@user.Id" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">تأكيد إلغاء حظر المستخدم</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>هل أنت متأكد من رغبتك في إلغاء حظر حساب المستخدم <strong>@user.FullName</strong>؟</p>
-                            </div>
-                            <div class="modal-footer">
-                                <form asp-action="UnblockConfirmed" asp-route-userId="@user.Id" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-info">إلغاء الحظر</button>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delete Modal -->
-                <div class="modal fade" id="deleteModal-@user.Id" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">تأكيد حذف المستخدم</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>هل أنت متأكد من رغبتك في حذف حساب المستخدم <strong>@user.FullName</strong>؟ هذا الإجراء لا يمكن التراجع عنه.</p>
-                            </div>
-                            <div class="modal-footer">
-                                <form asp-action="DeleteConfirmed" asp-route-userId="@user.Id" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger">حذف</button>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </tbody>
-    </table>
-
-    <!-- Success/Error Messages -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Success"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
+            </div>
+        }
     }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+</div>
+
+<div class="modal fade" id="blockModal" tabindex="-1" aria-labelledby="blockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blockModalLabel">تأكيد الحظر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد من حظر حساب المستخدم <span id="blockUserName" style="font-weight: bold;"></span>؟
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmBlock">حظر</button>
+            </div>
         </div>
-    }
+    </div>
+</div>
+
+<div class="modal fade" id="unblockModal" tabindex="-1" aria-labelledby="unblockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="unblockModalLabel">تأكيد إلغاء الحظر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد من إلغاء حظر حساب المستخدم <span id="unblockUserName" style="font-weight: bold;"></span>؟
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-warning" id="confirmUnblock">إلغاء الحظر</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد من حذف حساب المستخدم <span id="deleteUserName" style="font-weight: bold;"></span>؟ هذا الإجراء لا يمكن التراجع عنه.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">حذف</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('.modal').on('shown.bs.modal', function () {
-                $(this).find('[autofocus]').focus();
+            // Block Modal
+            $('#blockModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var userId = button.data('user-id');
+                var fullName = button.data('full-name');
+                var modal = $(this);
+                modal.find('#blockUserName').text(fullName);
+                modal.find('#confirmBlock').data('user-id', userId);
+            });
+
+            $('#confirmBlock').click(function () {
+                var userId = $(this).data('user-id');
+                // Add Anti-Forgery Token for security
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("BlockConfirmed", "Subscription")',
+                    type: 'POST',
+                    data: { userId: userId, __RequestVerificationToken: token }, // Include token
+                    success: function (response) {
+                        if (response.success) {
+                            $('#blockModal').modal('hide');
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('حدث خطأ أثناء معالجة الطلب: ' + xhr.responseText);
+                    }
+                });
+            });
+
+            // Unblock Modal
+            $('#unblockModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var userId = button.data('user-id');
+                var fullName = button.data('full-name');
+                var modal = $(this);
+                modal.find('#unblockUserName').text(fullName);
+                modal.find('#confirmUnblock').data('user-id', userId);
+            });
+
+            $('#confirmUnblock').click(function () {
+                var userId = $(this).data('user-id');
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("UnblockConfirmed", "Subscription")',
+                    type: 'POST',
+                    data: { userId: userId, __RequestVerificationToken: token },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#unblockModal').modal('hide');
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('حدث خطأ أثناء معالجة الطلب: ' + xhr.responseText);
+                    }
+                });
+            });
+
+            // Delete Modal
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var userId = button.data('user-id');
+                var fullName = button.data('full-name');
+                var modal = $(this);
+                modal.find('#deleteUserName').text(fullName);
+                modal.find('#confirmDelete').data('user-id', userId);
+            });
+
+            $('#confirmDelete').click(function () {
+                var userId = $(this).data('user-id');
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("DeleteConfirmed", "Subscription")',
+                    type: 'POST',
+                    data: { userId: userId, __RequestVerificationToken: token },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#deleteModal').modal('hide');
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('حدث خطأ أثناء معالجة الطلب: ' + xhr.responseText);
+                    }
+                });
             });
         });
     </script>

@@ -2,7 +2,467 @@
 
 @{
     ViewData["Title"] = "إدارة المستخدمين";
+    Layout = "/Views/shared/_Layoutdashboard.cshtml";
 }
+
+<style>
+    /* تعريف المتغيرات اللونية والتنسيق الأساسي */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --sidebar-width: 260px;
+        --sidebar-collapsed: 60px;
+        --header-height: 64px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        color: var(--text-primary);
+        font-size: 1.75rem;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    /* الأزرار العامة */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+    .btn-info { /* استخدام هذا لتعديل */
+        background-color: var(--primary-light);
+        border-color: var(--primary-light);
+        color: var(--text-primary);
+    }
+
+        .btn-info:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+    .btn-sm {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.875rem;
+        gap: 0.25rem;
+    }
+
+    .btn-warning {
+        background-color: var(--warning);
+        border-color: var(--warning);
+        color: #fff;
+    }
+
+        .btn-warning:hover {
+            background-color: #d97706; /* Darker shade of warning */
+            border-color: #d97706;
+            transform: translateY(-1px);
+        }
+
+    .btn-success {
+        background-color: var(--success);
+        border-color: var(--success);
+        color: #fff;
+    }
+
+        .btn-success:hover {
+            background-color: #0d926b; /* Darker shade of success */
+            border-color: #0d926b;
+            transform: translateY(-1px);
+        }
+
+    .btn-danger {
+        background-color: var(--danger);
+        border-color: var(--danger);
+        color: #fff;
+    }
+
+        .btn-danger:hover {
+            background-color: #c83030; /* Darker shade of danger */
+            border-color: #c83030;
+            transform: translateY(-1px);
+        }
+
+    .btn-secondary {
+        background-color: var(--secondary);
+        border-color: var(--border);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+
+    /* التنبيهات */
+    .alert {
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        direction: rtl; /* لدعم اللغة العربية */
+    }
+
+    .alert-success {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border-color: var(--success);
+    }
+
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .alert .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: inherit;
+        opacity: 0.7;
+        margin-right: -0.5rem;
+        margin-left: 0;
+    }
+
+        .alert .btn-close:hover {
+            opacity: 1;
+        }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1.5rem; /* مسافة بين الكروت */
+        overflow: hidden; /* لضمان أن الحدود والظلال تظهر بشكل صحيح */
+    }
+
+    .card-header {
+        background-color: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        text-align: right;
+    }
+
+        .card-header h6 {
+            color: var(--primary-dark);
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+
+    .card-body {
+        padding: 1.5rem;
+        direction: rtl;
+    }
+
+    /* Grid for user cards */
+    .user-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* تخطيط شبكي للبطاقات */
+        gap: 1.5rem; /* مسافة بين البطاقات */
+    }
+
+    .user-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .user-card:hover {
+            transform: translateY(-5px); /* تأثير رفع بسيط عند التحويم */
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-card h5 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-align: right;
+        }
+
+        .user-card p {
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-align: right;
+        }
+
+            .user-card p strong {
+                color: var(--text-primary);
+            }
+
+        .user-card .badge {
+            display: inline-block;
+            padding: 0.4em 0.6em;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.8em;
+            margin-top: 0.5rem;
+            width: fit-content; /* لجعل الشارة تأخذ عرض المحتوى فقط */
+        }
+
+            .user-card .badge.bg-success {
+                background-color: var(--success) !important;
+                color: #fff;
+            }
+
+            .user-card .badge.bg-danger {
+                background-color: var(--danger) !important;
+                color: #fff;
+            }
+
+        .user-card .actions {
+            display: flex;
+            justify-content: flex-end; /* لمحاذاة الأزرار لليسار في RTL */
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap; /* للسماح للأزرار بالانتقال إلى سطر جديد */
+        }
+
+            .user-card .actions .btn-sm {
+                margin-right: 0; /* إلغاء الهامش الافتراضي لـ me-2 في Bootstrap for RTL */
+                margin-left: 0.5rem; /* تباعد الأزرار في RTL */
+            }
+
+                .user-card .actions .btn-sm:last-child {
+                    margin-left: 0; /* إزالة الهامش من العنصر الأخير */
+                }
+
+    /* Flexbox & Spacing Utilities */
+    .d-flex {
+        display: flex;
+    }
+
+    .justify-content-between {
+        justify-content: space-between;
+    }
+
+    .align-items-center {
+        align-items: center;
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem !important;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        direction: rtl; /* لمحتوى المودال */
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        background-color: var(--bg-card);
+        border-top-left-radius: var(--radius);
+        border-top-right-radius: var(--radius);
+    }
+
+    .modal-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        text-align: right;
+        width: 100%; /* للتأكد من أن العنوان يأخذ المساحة الكافية */
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        color: var(--text-secondary);
+        text-align: right;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        background-color: var(--bg-card);
+        border-bottom-left-radius: var(--radius);
+        border-bottom-right-radius: var(--radius);
+        display: flex;
+        justify-content: flex-end; /* محاذاة الأزرار لليسار في RTL */
+        gap: 0.75rem;
+    }
+
+        .modal-footer .btn-secondary {
+            margin-right: 0.75rem; /* تباعد الأزرار في RTL */
+            margin-left: 0;
+        }
+
+    /* Search bar styling */
+    .search-bar {
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        direction: rtl;
+    }
+
+        .search-bar input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            direction: rtl;
+            text-align: right;
+        }
+
+            .search-bar input:focus {
+                border-color: var(--primary-light);
+                box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+                outline: none;
+            }
+
+    /* Pagination styling */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        direction: ltr; /* Pagination numbers are usually LTR */
+    }
+
+    .pagination-button {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        padding: 0.6rem 1rem;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+        .pagination-button:hover:not(.active):not(:disabled) {
+            background-color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .pagination-button.active {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            cursor: default;
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .pagination-info {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+
+    /* Responsive adjustments */
+    @@media (max-width: 767.98px) {
+        .d-flex.justify-content-between.align-items-center.mb-4 {
+            flex-direction: column;
+            align-items: flex-end; /* محاذاة العنوان والزر لليمين */
+            gap: 1rem;
+        }
+
+        .d-flex.justify-content-end.mt-4 {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+
+        .btn-primary, .btn-info, .btn-secondary, .btn-success, .btn-danger, .btn-warning {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            margin-right: 0 !important;
+        }
+
+        .container-fluid {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .user-card-grid {
+            grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة جداً */
+        }
+
+        .search-bar {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+            .search-bar input {
+                width: 100%;
+            }
+
+        .pagination-container {
+            flex-wrap: wrap;
+            padding: 0 1rem;
+        }
+    }
+</style>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -27,82 +487,74 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>الاسم الكامل</th>
-                            <th>البريد الإلكتروني</th>
-                            <th>رقم الهاتف</th>
-                            <th>نوع الاشتراك</th>
-                            <th>تاريخ انتهاء الاشتراك</th>
-                            <th>الحالة</th>
-                            <th>عدد العملاء</th>
-                            <th>عدد المعاملات</th>
-                            <th>آخر تسجيل دخول</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@Html.DisplayFor(modelItem => item.FullName)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.PhoneNumber)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.SubscriptionTypeDisplayName)</td>
-                                    <td>@item.SubscriptionEndDate.ToString("yyyy-MM-dd")</td>
-                                    <td>
-                                        @if (item.IsActive)
-                                        {
-                                            <span class="badge bg-success">مفعل</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">محظور</span>
-                                        }
-                                    </td>
-                                    <td>@Html.DisplayFor(modelItem => item.ClientsCount)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.TransactionsCount)</td>
-                                    <td>@(item.LastLogin == DateTime.MinValue ? "لم يتم تسجيل الدخول بعد" : item.LastLogin.ToString("yyyy-MM-dd HH:mm"))</td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="تعديل">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="التفاصيل">
-                                                <i class="fas fa-info-circle"></i>
-                                            </a>
-                                            <form asp-action="Block" asp-route-id="@item.Id" method="post" class="d-inline-block" onsubmit="return confirm('هل أنت متأكد من تغيير حالة هذا المستخدم؟');">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-warning" : "btn-success")" title="@(item.IsActive ? "حظر المستخدم" : "تفعيل المستخدم")">
-                                                    <i class="fas @(item.IsActive ? "fa-ban" : "fa-check-circle")"></i>
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@item.Id" data-email="@item.Email" title="حذف">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="10" class="text-center">لا يوجد مستخدمون لعرضهم.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="ابحث بالاسم، البريد الإلكتروني، أو رقم الهاتف..." aria-label="Search users">
             </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div id="userCardsContainer" class="user-card-grid">
+                    @foreach (var item in Model)
+                    {
+                        <div class="user-card" data-full-name="@item.FullName" data-email="@item.Email" data-phone="@item.PhoneNumber">
+                            <h5>@Html.DisplayFor(modelItem => item.FullName)</h5>
+                            <p><strong><i class="fas fa-envelope"></i> البريد الإلكتروني:</strong> @Html.DisplayFor(modelItem => item.Email)</p>
+                            <p><strong><i class="fas fa-phone"></i> رقم الهاتف:</strong> @Html.DisplayFor(modelItem => item.PhoneNumber)</p>
+                            <p><strong><i class="fas fa-gem"></i> نوع الاشتراك:</strong> @Html.DisplayFor(modelItem => item.SubscriptionTypeDisplayName)</p>
+                            <p><strong><i class="fas fa-calendar-alt"></i> تاريخ انتهاء الاشتراك:</strong> @item.SubscriptionEndDate.ToString("yyyy-MM-dd")</p>
+                            <p>
+                                <strong><i class="fas fa-toggle-on"></i> الحالة:</strong>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">مفعل</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">محظور</span>
+                                }
+                            </p>
+                            <p><strong><i class="fas fa-users"></i> عدد العملاء:</strong> @Html.DisplayFor(modelItem => item.ClientsCount)</p>
+                            <p><strong><i class="fas fa-exchange-alt"></i> عدد المعاملات:</strong> @Html.DisplayFor(modelItem => item.TransactionsCount)</p>
+                            <p><strong><i class="fas fa-sign-in-alt"></i> آخر تسجيل دخول:</strong> @(item.LastLogin == DateTime.MinValue ? "لم يتم تسجيل الدخول بعد" : item.LastLogin.ToString("yyyy-MM-dd HH:mm"))</p>
+
+                            <div class="actions">
+                                <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="التفاصيل">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                                <form asp-action="Block" asp-route-id="@item.Id" method="post" class="d-inline-block" onsubmit="return confirm('هل أنت متأكد من تغيير حالة هذا المستخدم؟');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-warning" : "btn-success")" title="@(item.IsActive ? "حظر المستخدم" : "تفعيل المستخدم")">
+                                        <i class="fas @(item.IsActive ? "fa-ban" : "fa-check-circle")"></i>
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@item.Id" data-email="@item.Email" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div id="paginationContainer" class="pagination-container">
+                </div>
+                <div id="noResults" class="alert alert-info text-center" role="alert" style="direction: rtl; display: none;">
+                    لا توجد نتائج مطابقة لبحثك.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center" role="alert" style="direction: rtl;">
+                    لا يوجد مستخدمون لعرضهم.
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -130,27 +582,155 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-    <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-
     <script>
-        $(document).ready(function () {
-            $('#usersTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+        // Use a self-invoking anonymous function to avoid global variable pollution
+        (function () {
+            const usersPerPage = 6; // يمكنك تغيير هذا الرقم لتحديد عدد المستخدمين في كل صفحة
+            let currentPage = 1;
+            const userCardsContainer = document.getElementById('userCardsContainer');
+            const searchInput = document.getElementById('searchInput');
+            const paginationContainer = document.getElementById('paginationContainer');
+            const noResultsMessage = document.getElementById('noResults');
+
+            // Store all user cards (initial state)
+            const allUserCards = Array.from(userCardsContainer ? userCardsContainer.children : []);
+
+            function renderUsers(usersToDisplay) {
+                if (!userCardsContainer) return; // Prevent errors if container doesn't exist
+
+                userCardsContainer.innerHTML = ''; // Clear current cards
+
+                if (usersToDisplay.length === 0) {
+                    noResultsMessage.style.display = 'block';
+                    return;
+                } else {
+                    noResultsMessage.style.display = 'none';
                 }
-            });
 
-            $('#deleteModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget); // Button that triggered the modal
-                var userId = button.data('id'); // Extract info from data-* attributes
-                var userEmail = button.data('email');
+                usersToDisplay.forEach(card => {
+                    userCardsContainer.appendChild(card);
+                });
+            }
 
-                var modal = $(this);
-                modal.find('#userIdToDelete').val(userId);
-                modal.find('#userEmailToDelete').text(userEmail);
-            });
-        });
+            function setupPagination(filteredUsers) {
+                if (!paginationContainer) return;
+
+                paginationContainer.innerHTML = ''; // Clear existing pagination
+
+                const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+                if (totalPages <= 1) {
+                    return; // No pagination needed for 1 or fewer pages
+                }
+
+                // Previous button
+                const prevButton = document.createElement('button');
+                prevButton.classList.add('pagination-button');
+                prevButton.innerHTML = '<i class="fas fa-chevron-right"></i>'; // RTL: prev is right arrow
+                prevButton.disabled = currentPage === 1;
+                prevButton.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        filterAndPaginateUsers();
+                    }
+                });
+                paginationContainer.appendChild(prevButton);
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.classList.add('pagination-button');
+                    pageButton.textContent = i;
+                    if (i === currentPage) {
+                        pageButton.classList.add('active');
+                    }
+                    pageButton.addEventListener('click', () => {
+                        currentPage = i;
+                        filterAndPaginateUsers();
+                    });
+                    paginationContainer.appendChild(pageButton);
+                }
+
+                // Next button
+                const nextButton = document.createElement('button');
+                nextButton.classList.add('pagination-button');
+                nextButton.innerHTML = '<i class="fas fa-chevron-left"></i>'; // RTL: next is left arrow
+                nextButton.disabled = currentPage === totalPages;
+                nextButton.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        filterAndPaginateUsers();
+                    }
+                });
+                paginationContainer.appendChild(nextButton);
+
+                // Add pagination info (e.g., "Page X of Y")
+                const paginationInfo = document.createElement('span');
+                paginationInfo.classList.add('pagination-info');
+                paginationInfo.textContent = `صفحة ${currentPage} من ${totalPages}`;
+                paginationContainer.appendChild(paginationInfo);
+            }
+
+            function filterAndPaginateUsers() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+
+                const filteredUsers = allUserCards.filter(card => {
+                    const fullName = card.dataset.fullName ? card.dataset.fullName.toLowerCase() : '';
+                    const email = card.dataset.email ? card.dataset.email.toLowerCase() : '';
+                    const phoneNumber = card.dataset.phone ? card.dataset.phone.toLowerCase() : '';
+
+                    return fullName.includes(searchTerm) ||
+                        email.includes(searchTerm) ||
+                        phoneNumber.includes(searchTerm);
+                });
+
+                // Reset currentPage if it's out of bounds after filtering
+                const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                } else if (totalPages === 0) {
+                    currentPage = 1; // Or handle no results state
+                }
+
+                const startIndex = (currentPage - 1) * usersPerPage;
+                const endIndex = startIndex + usersPerPage;
+                const usersToDisplay = filteredUsers.slice(startIndex, endIndex);
+
+                renderUsers(usersToDisplay);
+                setupPagination(filteredUsers);
+            }
+
+            // Event listener for search input
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    currentPage = 1; // Reset to first page on new search
+                    filterAndPaginateUsers();
+                });
+            }
+
+            // Initial render when the page loads
+            filterAndPaginateUsers();
+
+            // Modal logic (from your original code)
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget; // Button that triggered the modal
+                    const userId = button.dataset.id; // Extract info from data-* attributes
+                    const userEmail = button.dataset.email;
+
+                    const modal = this;
+                    const userIdToDeleteInput = modal.querySelector('#userIdToDelete');
+                    const userEmailToDeleteSpan = modal.querySelector('#userEmailToDelete');
+
+                    if (userIdToDeleteInput) {
+                        userIdToDeleteInput.value = userId;
+                    }
+                    if (userEmailToDeleteSpan) {
+                        userEmailToDeleteSpan.textContent = userEmail;
+                    }
+                });
+            }
+        })();
     </script>
 }

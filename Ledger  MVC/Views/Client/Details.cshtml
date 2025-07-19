@@ -1,36 +1,604 @@
-﻿@model dynamic
+﻿@using Ledger__MVC.Controllers  
+@using System.Globalization
+@using System.ComponentModel.DataAnnotations
+
+@model Ledger__MVC.Controllers.ClientController.ClientDetailsViewModel
 @{
     ViewData["Title"] = "تفاصيل العميل";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
+ 
+    
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
 
-<h2>تفاصيل العميل: @Model.Name</h2>
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
-<p><strong>الهاتف:</strong> @Model.PhoneNumber</p>
-<p><strong>البريد:</strong> @Model.Email</p>
-<p><strong>عدد المعاملات:</strong> @Model.TransactionsCount</p>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+    }
 
-<h4>المعاملات:</h4>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>النوع</th>
-            <th>القيمة</th>
-            <th>التاريخ</th>
-            <th>ملاحظات</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var t in Model.Transactions)
-        {
-                <tr>
-                    <td>@t.Type</td>
-                    <td>@t.Amount</td>
-                    <td>@t.Date.ToString("yyyy-MM-dd")</td>
-                    <td>@t.Notes</td>
-                </tr>
+    /* حاوية الصفحة */
+    .client-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* عنوان الصفحة */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-header .client-name {
+        color: var(--primary-light);
+        font-weight: 600;
+    }
+
+    /* رسائل التنبيه */
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius);
+        margin-bottom: 2rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-weight: 500;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        color: var(--danger);
+        border-left: 4px solid var(--danger);
+    }
+
+    .alert-success {
+        background-color: #f0fdf4;
+        color: var(--success);
+        border-left: 4px solid var(--success);
+    }
+
+    /* بطاقة معلومات العميل */
+    .client-info-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .client-info-header {
+        background: linear-gradient(135deg, var(--secondary), #ffffff);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .client-info-header h5 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .client-info-body {
+        padding: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        background: var(--bg-secondary);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+    .info-item:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .info-value.highlight {
+        color: var(--primary);
+    }
+
+    /* قسم المعاملات */
+    .transactions-section {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .transactions-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .transactions-header h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .transactions-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* جدول المعاملات */
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .transactions-table thead {
+        background: var(--secondary);
+    }
+
+    .transactions-table th {
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-align: right;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .transactions-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .transactions-table tbody tr {
+        transition: var(--transition);
+    }
+
+    .transactions-table tbody tr:hover {
+        background-color: var(--bg-secondary);
+    }
+
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .transaction-type.credit {
+        background: #f0fdf4;
+        color: var(--success);
+    }
+
+    .transaction-type.debit {
+        background: #fef2f2;
+        color: var(--danger);
+    }
+
+    .transaction-amount {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .transaction-amount.credit {
+        color: var(--success);
+    }
+
+    .transaction-amount.debit {
+        color: var(--danger);
+    }
+
+    .transaction-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .transaction-notes {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* أزرار الإجراءات */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: var(--transition);
+        min-width: 150px;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: var(--transition);
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--text-secondary), var(--text-muted));
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--text-muted), var(--text-secondary));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* حالة فارغة */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 768px) {
+        .client-container {
+            padding: 1rem;
         }
-    </tbody>
-</table>
 
-<a asp-action="Index" class="btn btn-secondary">رجوع</a>
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .transactions-table {
+            font-size: 0.9rem;
+        }
+
+        .transactions-table th,
+        .transactions-table td {
+            padding: 0.75rem;
+        }
+
+        .transactions-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 250px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .transactions-table {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<div class="client-container">
+    <!-- رأس الصفحة -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-user-circle"></i>
+            تفاصيل العميل: <span class="client-name">@Model.Name</span>
+        </h1>
+    </div>
+
+    <!-- رسائل التنبيه -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- بطاقة معلومات العميل -->
+    <div class="client-info-card">
+        <div class="client-info-header">
+            <h5>
+                <i class="fas fa-info-circle"></i>
+                معلومات العميل
+            </h5>
+        </div>
+        <div class="client-info-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-user"></i>
+                        الاسم
+                    </div>
+                    <div class="info-value">@Model.Name</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-phone"></i>
+                        رقم الهاتف
+                    </div>
+                    <div class="info-value">@Model.PhoneNumber</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-envelope"></i>
+                        البريد الإلكتروني
+                    </div>
+                    <div class="info-value">@(Model.Email ?? "غير محدد")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-exchange-alt"></i>
+                        عدد المعاملات
+                    </div>
+                    <div class="info-value highlight">@Model.TransactionsCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم المعاملات -->
+    <div class="transactions-section">
+        <div class="transactions-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                المعاملات
+            </h3>
+            <div class="transactions-count">
+                @Model.TransactionsCount معاملة
+            </div>
+        </div>
+
+        @if (Model.Transactions != null && Model.Transactions.Any())
+        {
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <i class="fas fa-tag"></i>
+                            النوع
+                        </th>
+                        <th>
+                            <i class="fas fa-money-bill-wave"></i>
+                            المبلغ
+                        </th>
+                        <th>
+                            <i class="fas fa-calendar"></i>
+                            التاريخ
+                        </th>
+                        <th>
+                            <i class="fas fa-sticky-note"></i>
+                            الملاحظات
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in Model.Transactions)
+                    {
+                        <tr>
+                            <td>
+                                <div class="transaction-type @(transaction.Type == TransactionType.Payment ? "credit" : "debit")">
+                                    <i class="fas @(transaction.Type == TransactionType.Payment ? "fa-arrow-up" : "fa-arrow-down")"></i>
+        @transaction.Type
+    </div>
+</td>
+<td>
+                                <div class="transaction-amount @(transaction.Type == TransactionType.Payment ? "credit" : "debit")">
+        @{
+            if (decimal.TryParse(transaction.Amount.ToString(), out decimal amount))
+            {
+                @amount.ToString("C2", egyptianCulture)
+            }
+            else
+            {
+                @transaction.Amount
+            }
+        }
+    </div>
+</td>
+                            <td>
+                                <div class="transaction-date">
+                                    <i class="fas fa-clock"></i>
+                                    @transaction.Date.ToString("yyyy/MM/dd")
+                                    <br>
+                                    <small>@transaction.Date.ToString("HH:mm")</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="transaction-notes">
+                                    @if (!string.IsNullOrEmpty(transaction.Notes))
+                                    {
+                                        <i class="fas fa-comment"></i>
+                                        @transaction.Notes
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-minus"></i>
+                                        <span>لا توجد ملاحظات</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h4>لا توجد معاملات</h4>
+                <p>لم يتم العثور على أي معاملات لهذا العميل</p>
+            </div>
+        }
+    </div>
+
+    <!-- أزرار الإجراءات -->
+    <div class="action-buttons">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="action-btn btn-primary">
+            <i class="fas fa-edit"></i>
+            تعديل العميل
+        </a>
+        <a asp-action="Index" class="action-btn btn-secondary">
+            <i class="fas fa-arrow-right"></i>
+            العودة للقائمة
+        </a>
+    </div>
+</div>

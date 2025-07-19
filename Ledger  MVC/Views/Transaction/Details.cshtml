@@ -3,22 +3,499 @@
     ViewData["Title"] = "تفاصيل المعاملة";
 }
 
-<div class="container mt-4">
-    <h2>تفاصيل المعاملة</h2>
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
 
-    <dl class="row">
-        <dt class="col-sm-3">العميل</dt>
-        <dd class="col-sm-9">@Model.ClientName</dd>
-        <dt class="col-sm-3">نوع المعاملة</dt>
-        <dd class="col-sm-9">@Model.TypeDisplayName</dd>
-        <dt class="col-sm-3">المبلغ</dt>
-        <dd class="col-sm-9">@Model.Amount.ToString("C")</dd>
-        <dt class="col-sm-3">التاريخ</dt>
-        <dd class="col-sm-9">@Model.Date.ToString("yyyy-MM-dd")</dd>
-        <dt class="col-sm-3">ملاحظات</dt>
-        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Notes) ? "-" : Model.Notes)</dd>
-    </dl>
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
-    <a asp-action="Update" asp-route-id="@Model.Id" class="btn btn-primary">تعديل</a>
-    <a asp-action="Index" class="btn btn-secondary">رجوع</a>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+    }
+
+    /* حاوية الصفحة */
+    .transaction-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* عنوان الصفحة */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .page-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* تنبيه الأخطاء */
+    .alert {
+        border: none;
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        color: var(--danger);
+        border-left: 4px solid var(--danger);
+    }
+
+    .alert-danger::before {
+        content: '\f071';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 1.2rem;
+        margin-left: 0.5rem;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        color: var(--danger);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* بطاقة المعاملة */
+    .transaction-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--secondary), #ffffff);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title i {
+        color: var(--primary);
+        font-size: 1.3rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* قائمة التفاصيل */
+    .transaction-details {
+        margin: 0;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem 0;
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-row:hover {
+        background: linear-gradient(135deg, var(--secondary), rgba(255,255,255,0.5));
+        margin: 0 -2rem;
+        padding: 1.5rem 2rem;
+        border-radius: var(--radius);
+    }
+
+    .detail-icon {
+        flex-shrink: 0;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-left: 1rem;
+        color: white;
+    }
+
+    .detail-label {
+        flex-shrink: 0;
+        width: 150px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+
+    .detail-value {
+        flex: 1;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    /* ألوان الأيقونات */
+    .icon-client { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .icon-type { background: linear-gradient(135deg, var(--warning), #d97706); }
+    .icon-amount { background: linear-gradient(135deg, var(--success), #059669); }
+    .icon-date { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .icon-notes { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+    /* قسم الأزرار */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: var(--transition);
+        min-width: 150px;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: var(--transition);
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--text-muted), var(--text-secondary));
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--text-secondary), var(--text-muted));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* تحسينات المبلغ */
+    .amount-display {
+        font-size: 1.3rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        border-radius: var(--radius);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: var(--success);
+    }
+
+    .amount-display::before {
+        content: 'ج.م ';
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    /* تحسينات التاريخ */
+    .date-display {
+        font-family: 'Cairo', sans-serif;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    /* تحسينات الملاحظات */
+    .notes-display {
+        font-style: italic;
+        color: var(--text-secondary);
+        background: var(--secondary);
+        padding: 1rem;
+        border-radius: var(--radius);
+        border-right: 4px solid var(--primary);
+    }
+
+    .notes-empty {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 768px) {
+        .transaction-container {
+            padding: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .detail-label {
+            width: 100%;
+        }
+
+        .detail-icon {
+            align-self: flex-start;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+        }
+        
+        .detail-value {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="transaction-container">
+    <!-- عنوان الصفحة -->
+    <div class="page-header">
+        <h2><i class="fas fa-file-invoice-dollar"></i> تفاصيل المعاملة</h2>
+        <div class="subtitle">عرض شامل لمعلومات المعاملة المحددة</div>
+    </div>
+
+    <!-- عرض الأخطاء -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
+    <!-- بطاقة المعاملة -->
+    <div class="transaction-card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="fas fa-info-circle"></i>
+                معلومات المعاملة
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="transaction-details">
+                <!-- العميل -->
+                <div class="detail-row">
+                    <div class="detail-icon icon-client">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="detail-label">العميل:</div>
+                    <div class="detail-value">@Model.ClientName</div>
+                </div>
+
+                <!-- نوع المعاملة -->
+                <div class="detail-row">
+                    <div class="detail-icon icon-type">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="detail-label">نوع المعاملة:</div>
+                    <div class="detail-value">@Model.TypeDisplayName</div>
+                </div>
+
+                <!-- المبلغ -->
+                <div class="detail-row">
+                    <div class="detail-icon icon-amount">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="detail-label">المبلغ:</div>
+                    <div class="detail-value">
+                        <span class="amount-display">@Model.Amount.ToString("N2")</span>
+                    </div>
+                </div>
+
+                <!-- التاريخ -->
+                <div class="detail-row">
+                    <div class="detail-icon icon-date">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="detail-label">التاريخ:</div>
+                    <div class="detail-value">
+                        <span class="date-display">@Model.Date.ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+
+                <!-- الملاحظات -->
+                <div class="detail-row">
+                    <div class="detail-icon icon-notes">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
+                    <div class="detail-label">الملاحظات:</div>
+                    <div class="detail-value">
+                        @if (string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <span class="notes-empty">لا توجد ملاحظات</span>
+                        }
+                        else
+                        {
+                            <div class="notes-display">@Model.Notes</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- أزرار الإجراءات -->
+    <div class="action-buttons">
+        <a asp-action="Update" asp-route-id="@Model.Id" class="action-btn btn-primary">
+            <i class="fas fa-edit"></i>
+            تعديل المعاملة
+        </a>
+        <a asp-action="Index" class="action-btn btn-secondary">
+            <i class="fas fa-arrow-right"></i>
+            العودة للقائمة
+        </a>
+    </div>
 </div>

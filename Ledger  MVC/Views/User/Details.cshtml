@@ -2,7 +2,248 @@
 
 @{
     ViewData["Title"] = "تفاصيل المستخدم";
+    Layout = "/Views/shared/_Layoutdashboard.cshtml";
 }
+
+<style>
+    /* تعريف المتغيرات اللونية والتنسيق الأساسي */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --sidebar-width: 260px;
+        --sidebar-collapsed: 60px;
+        --header-height: 64px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        color: var(--text-primary);
+        font-size: 1.75rem;
+        font-weight: 700;
+        text-align: right; /* لمحاذاة العنوان لليمين */
+    }
+
+    .form-label { /* هذه قد لا تستخدم مباشرة في صفحة التفاصيل ولكن للحفاظ على التناسق */
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+        text-align: right;
+    }
+
+    /* الأزرار */
+    .btn-info {
+        background-color: var(--primary-light); /* استخدام لون أزرق فاتح قريب من الأساسي */
+        border-color: var(--primary-light);
+        color: var(--text-primary); /* لون النص ليكون واضحًا على الخلفية الفاتحة */
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+    }
+    .btn-info:hover {
+        background-color: var(--primary); /* أغمق قليلاً عند التحويم */
+        border-color: var(--primary);
+        color: var(--bg-primary); /* نص أبيض عند التحويم */
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary);
+        border-color: var(--border);
+        color: var(--text-primary);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+        background-color: var(--border);
+        border-color: var(--text-muted);
+        transform: translateY(-1px);
+    }
+
+    /* التنبيهات */
+    .alert {
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        direction: rtl; /* لدعم اللغة العربية */
+    }
+    .alert-success {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border-color: var(--success);
+    }
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+    .alert .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: inherit;
+        opacity: 0.7;
+        margin-right: -0.5rem; /* تعديل ليتناسب مع RTL */
+        margin-left: 0;
+    }
+    .alert .btn-close:hover {
+        opacity: 1;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+        background-color: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        text-align: right; /* لمحاذاة عنوان الكارد لليمين */
+    }
+
+    .card-header h6 {
+        color: var(--primary-dark);
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+        direction: rtl; /* لضمان أن المحتوى داخل الكارد يبدأ من اليمين لليسار */
+    }
+
+    /* Description List (dl) styling */
+    .dl-horizontal dt, .dl-horizontal dd, .row dt, .row dd {
+        padding: 0.5rem 0;
+        margin-bottom: 0; /* إزالة الهوامش السفلية الزائدة */
+    }
+
+    .dl-horizontal dt, .row dt {
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-align: right; /* محاذاة لليمين */
+    }
+
+    .dl-horizontal dd, .row dd {
+        color: var(--text-primary);
+        text-align: right; /* محاذاة لليمين */
+    }
+
+    /* Badges (for status) */
+    .badge {
+        padding: 0.5em 0.75em;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        font-size: 0.85em;
+    }
+    .bg-success {
+        background-color: var(--success) !important;
+        color: #fff;
+    }
+    .bg-danger {
+        background-color: var(--danger) !important;
+        color: #fff;
+    }
+
+    /* Flex utilities */
+    .d-flex {
+        display: flex;
+    }
+
+    .justify-content-between {
+        justify-content: space-between;
+    }
+
+    .justify-content-end {
+        justify-content: flex-end;
+    }
+
+    .align-items-center {
+        align-items: center;
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem !important;
+    }
+
+    .me-2 {
+        margin-right: 0.5rem !important; /* لتباعد الأزرار في RTL */
+        margin-left: 0;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 767.98px) {
+        .col-sm-3, .col-sm-9 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            text-align: right;
+        }
+        .dl-horizontal dt, .row dt {
+            padding-bottom: 0.25rem; /* تقليل المسافة بين DT و DD في الشاشات الصغيرة */
+        }
+        .dl-horizontal dd, .row dd {
+            padding-top: 0.25rem;
+        }
+        .d-flex.justify-content-end.mt-4 {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        .btn-info, .btn-secondary {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            margin-right: 0 !important;
+        }
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">

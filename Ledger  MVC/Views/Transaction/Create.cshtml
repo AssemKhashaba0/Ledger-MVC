@@ -3,53 +3,563 @@
     ViewData["Title"] = "إضافة معاملة جديدة";
 }
 
-<div class="container mt-4">
-    <h2>إضافة معاملة جديدة</h2>
-
-    <form asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-        <div class="form-group">
-            <label asp-for="ClientId">العميل</label>
-            <select asp-for="ClientId" class="form-control" asp-items="@(new SelectList(ViewData["Clients"] as List<dynamic>, "Id", "Name"))">
-                <option value="">اختر العميل</option>
-            </select>
-            <span asp-validation-for="ClientId" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Type">نوع المعاملة</label>
-            <select asp-for="Type" class="form-control" asp-items="@(new SelectList(ViewData["TransactionTypes"] as List<dynamic>, "Id", "Name"))">
-                <option value="">اختر نوع المعاملة</option>
-            </select>
-            <span asp-validation-for="Type" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Amount">المبلغ</label>
-            <input asp-for="Amount" class="form-control" type="number" step="0.01" />
-            <span asp-validation-for="Amount" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Date">التاريخ</label>
-            <input asp-for="Date" class="form-control" type="date" />
-            <span asp-validation-for="Date" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Notes">ملاحظات</label>
-            <textarea asp-for="Notes" class="form-control"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">إضافة</button>
-        <a asp-action="Index" class="btn btn-secondary">إلغاء</a>
-    </form>
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">×</span>
-            </button>
-        </div>
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
     }
+
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+    }
+
+    /* حاوية النموذج */
+    .form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    /* بطاقة النموذج */
+    .form-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* رأس النموذج */
+    .form-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .form-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* جسم النموذج */
+    .form-body {
+        padding: 2.5rem;
+    }
+
+    /* مجموعات الحقول */
+    .form-group {
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    /* تسميات الحقول */
+    .form-label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        position: relative;
+        padding-right: 2rem;
+    }
+
+    .form-label::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.2rem;
+        height: 1.2rem;
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-label[for="ClientId"]::before { content: '\f007'; } /* user */
+    .form-label[for="Type"]::before { content: '\f02d'; } /* bookmark */
+    .form-label[for="Amount"]::before { content: '\f155'; } /* dollar-sign */
+    .form-label[for="Date"]::before { content: '\f073'; } /* calendar */
+    .form-label[for="Notes"]::before { content: '\f249'; } /* sticky-note */
+
+    /* حقول الإدخال */
+    .form-control, .form-select {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: var(--transition);
+        font-family: 'Cairo', sans-serif;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background-color: var(--bg-primary);
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: var(--primary-light);
+    }
+
+    /* حقل النص المتعدد */
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    /* رسائل الخطأ */
+    .text-danger {
+        color: var(--danger);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: block;
+        font-weight: 500;
+    }
+
+    /* رسائل التنبيه */
+    .alert {
+        padding: 1rem 1.25rem;
+        margin-bottom: 2rem;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: var(--danger);
+        border-right: 4px solid var(--danger);
+    }
+
+    .alert-dismissible .btn-close {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--danger);
+        opacity: 0.7;
+        transition: var(--transition);
+    }
+
+    .alert-dismissible .btn-close:hover {
+        opacity: 1;
+    }
+
+    /* أزرار الإجراءات */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: var(--transition);
+        min-width: 160px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: var(--transition);
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--text-muted), var(--text-secondary));
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--text-secondary), var(--text-muted));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* تأثيرات التحقق */
+    .was-validated .form-control:valid {
+        border-color: var(--success);
+        background-image: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: var(--danger);
+        background-image: none;
+    }
+
+    .was-validated .form-select:valid {
+        border-color: var(--success);
+        background-image: none;
+    }
+
+    .was-validated .form-select:invalid {
+        border-color: var(--danger);
+        background-image: none;
+    }
+
+    /* مؤشر التحميل */
+    .loading-spinner {
+        display: none;
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* تخطيط متقدم للحقول */
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-col {
+        flex: 1;
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 768px) {
+        .form-container {
+            margin: 1rem auto;
+            padding: 0 0.5rem;
+        }
+
+        .form-header {
+            padding: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+        }
+
+        .form-body {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn {
+            width: 100%;
+            max-width: 280px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .form-title {
+            font-size: 1.5rem;
+        }
+
+        .form-body {
+            padding: 1rem;
+        }
+    }
+
+    /* تحسينات إضافية للتفاعل */
+    .form-group {
+        position: relative;
+    }
+
+    .form-group::after {
+        content: '';
+        position: absolute;
+        bottom: -1rem;
+        right: 0;
+        left: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        opacity: 0.3;
+    }
+
+    .form-group:last-of-type::after {
+        display: none;
+    }
+
+    /* تأثيرات حقول النماذج المتقدمة */
+    .form-field-wrapper {
+        position: relative;
+    }
+
+    .form-field-icon {
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        transform: translateY(-50%);
+        color: var(--primary);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .form-control.has-icon {
+        padding-right: 3rem;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1 class="form-title">
+                <i class="fas fa-plus-circle"></i>
+                إضافة معاملة جديدة
+            </h1>
+            <div class="form-subtitle">أدخل بيانات المعاملة الجديدة بدقة</div>
+        </div>
+
+        <div class="form-body">
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="إغلاق">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            }
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label asp-for="ClientId" class="form-label">العميل</label>
+                            <select asp-for="ClientId" class="form-select" required>
+                                <option value="">اختر العميل</option>
+                                @foreach (var client in Model.Clients)
+                                {
+                                    <option value="@client.Id">@client.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ClientId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label asp-for="Type" class="form-label">نوع المعاملة</label>
+                            <select asp-for="Type" class="form-select" required>
+                                <option value="">اختر نوع المعاملة</option>
+                                @foreach (var type in Model.TransactionTypes)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label asp-for="Amount" class="form-label">المبلغ (بالجنيه المصري)</label>
+                            <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+                            <span asp-validation-for="Amount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label asp-for="Date" class="form-label">تاريخ المعاملة</label>
+                            <input asp-for="Date" class="form-control" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="Date" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Notes" class="form-label">ملاحظات إضافية (اختياري)</label>
+                    <textarea asp-for="Notes" class="form-control" rows="4" placeholder="أضف أي ملاحظات أو تفاصيل إضافية حول هذه المعاملة..."></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        حفظ المعاملة
+                        <span class="loading-spinner"></span>
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i>
+                        رجوع للقائمة
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+    // تحسين تجربة النماذج
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.needs-validation');
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const loadingSpinner = document.querySelector('.loading-spinner');
+
+        // التحقق من صحة النموذج عند الإرسال
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // إظهار مؤشر التحميل
+                loadingSpinner.style.display = 'inline-block';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            }
+            form.classList.add('was-validated');
+        });
+
+        // تحسين تفاعل الحقول
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+
+        // إغلاق التنبيهات تلقائياً
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                if (alert.classList.contains('show')) {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 300);
+                }
+            }, 5000);
+        });
+    });
+</script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

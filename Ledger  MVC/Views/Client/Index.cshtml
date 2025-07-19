@@ -1,68 +1,835 @@
-﻿@{
-    ViewData["Title"] = "العملاء";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-@model List<dynamic>
-
-<h2>قائمة العملاء</h2>
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
+﻿@model Ledger__MVC.Controllers.ClientController.ClientIndexViewModel
+@{
+    ViewData["Title"] = "إدارة العملاء";
 }
 
-<a class="btn btn-success mb-3" asp-action="Create">إضافة عميل جديد</a>
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>الاسم</th>
-            <th>رقم الهاتف</th>
-            <th>البريد الإلكتروني</th>
-            <th>عدد المعاملات</th>
-            <th>إجراءات</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var client in Model)
-        {
-            <tr>
-                <td>@client.Name</td>
-                <td>@client.PhoneNumber</td>
-                <td>@client.Email</td>
-                <td>@client.TransactionCount</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@client.Id" class="btn btn-info btn-sm">تفاصيل</a>
-                    <a asp-action="Edit" asp-route-id="@client.Id" class="btn btn-warning btn-sm">تعديل</a>
-                    <button class="btn btn-danger btn-sm" onclick="deleteClient(@client.Id)">حذف</button>
-                </td>
-            </tr>
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+    }
+
+    /* حاوية الصفحة */
+    .clients-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* رأس الصفحة */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 2rem;
+        border-radius: var(--radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .page-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-header .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* أزرار التنبيهات */
+    .alert {
+        border: none;
+        border-radius: var(--radius);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+        border-right: 4px solid #047857;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        color: white;
+        border-right: 4px solid #b91c1c;
+    }
+
+    .alert .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    /* زر إضافة عميل جديد */
+    .add-client-section {
+        margin-bottom: 2rem;
+    }
+
+    .add-client-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .add-client-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: var(--transition);
+    }
+
+    .add-client-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .add-client-btn:hover::before {
+        left: 100%;
+    }
+
+    /* شبكة البطاقات */
+    .clients-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    /* بطاقة العميل */
+    .client-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: var(--transition);
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    .client-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .client-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        transform: scaleX(0);
+        transition: var(--transition);
+    }
+
+    .client-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    /* رأس البطاقة */
+    .client-card-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--secondary), #ffffff);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .client-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .client-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-balanced {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-owes {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-owed {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* جسم البطاقة */
+    .client-card-body {
+        padding: 1.5rem;
+    }
+
+    .client-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .info-icon {
+        width: 20px;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* إحصائيات العميل */
+    .client-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: 0.3rem;
+    }
+
+    /* أزرار الإجراءات */
+    .client-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: var(--transition);
+        cursor: pointer;
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: linear-gradient(135deg, #0284c7, #0ea5e9);
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626, var(--danger));
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669, var(--success));
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--text-muted), #64748b);
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #64748b, var(--text-muted));
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* رسالة عدم وجود عملاء */
+    .no-clients {
+        text-align: center;
+        padding: 3rem;
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .no-clients-icon {
+        font-size: 4rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    .no-clients h3 {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .no-clients p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    /* تحسين المودال */
+    .modal-content {
+        border: none;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        direction: rtl;
+        text-align: right;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border-bottom: none;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border);
+        padding: 1rem 2rem;
+    }
+
+    /* تحسين الحقول */
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        direction: rtl;
+        text-align: right;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 768px) {
+        .clients-container {
+            padding: 1rem;
         }
-    </tbody>
-</table>
+
+        .page-header h2 {
+            font-size: 2rem;
+        }
+
+        .clients-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .client-actions {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            min-width: auto;
+        }
+
+        .client-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .client-card-header,
+        .client-card-body {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="clients-container">
+    <!-- رأس الصفحة -->
+    <div class="page-header">
+        <h2>
+            <i class="fas fa-users"></i>
+            إدارة العملاء
+        </h2>
+        <div class="subtitle">إدارة شاملة لجميع عملائك ومعاملاتهم</div>
+    </div>
+
+    <!-- رسائل التنبيه -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- زر إضافة عميل جديد -->
+    <div class="add-client-section">
+        <a asp-action="Create" class="add-client-btn">
+            <i class="fas fa-user-plus"></i>
+            إضافة عميل جديد
+        </a>
+    </div>
+
+    <!-- شبكة العملاء -->
+    @if (Model.Clients != null && Model.Clients.Any())
+    {
+        <div class="clients-grid">
+            @foreach (var client in Model.Clients)
+            {
+                <div class="client-card">
+                    <div class="client-card-header">
+                        <div class="client-name">
+                            <i class="fas fa-user"></i>
+                            @client.Name
+                        </div>
+                        <div class="client-status @(client.Status == "متسوي" ? "status-balanced" : client.NetBalance > 0 ? "status-owed" : "status-owes")">
+                            @if (client.Status == "متسوي")
+                            {
+                                <i class="fas fa-check-circle"></i>
+                            }
+                            else if (client.NetBalance > 0)
+                            {
+                                <i class="fas fa-arrow-up"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-arrow-down"></i>
+                            }
+                            @client.Status
+                            @if (client.Status != "متسوي")
+                            {
+                                <span>(@client.NetBalance.ToString("N2") ج.م)</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="client-card-body">
+                        <!-- معلومات العميل -->
+                        <div class="client-info">
+                            <div class="info-item">
+                                <i class="fas fa-phone info-icon"></i>
+                                <span class="info-value">@client.PhoneNumber</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-envelope info-icon"></i>
+                                <span class="info-value">@(client.Email ?? "غير محدد")</span>
+                            </div>
+                        </div>
+
+                        <!-- إحصائيات العميل -->
+                        <div class="client-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">@client.TransactionCount</div>
+                                <div class="stat-label">عدد المعاملات</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">@Math.Abs(client.NetBalance).ToString("N0")</div>
+                                <div class="stat-label">قيمة الحساب</div>
+                            </div>
+                        </div>
+
+                        <!-- أزرار الإجراءات -->
+                        <div class="client-actions">
+                            <a asp-action="Details" asp-route-id="@client.Id" class="action-btn btn-info">
+                                <i class="fas fa-eye"></i>
+                                تفاصيل
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@client.Id" class="action-btn btn-primary">
+                                <i class="fas fa-edit"></i>
+                                تعديل
+                            </a>
+                            <button type="button" class="action-btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-client-id="@client.Id" data-client-name="@client.Name">
+                                <i class="fas fa-trash"></i>
+                                حذف
+                            </button>
+                            <button type="button" class="action-btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionModal"
+                                    data-client-id="@client.Id" data-client-name="@client.Name">
+                                <i class="fas fa-plus"></i>
+                                إضافة معاملة
+                            </button>
+                            <a asp-controller="Transaction" asp-action="Index" asp-route-clientId="@client.Id" class="action-btn btn-secondary">
+                                <i class="fas fa-list"></i>
+                                كل المعاملات
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-clients">
+            <div class="no-clients-icon">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <h3>لا توجد عملاء</h3>
+            <p>لم يتم إضافة أي عملاء بعد. ابدأ بإضافة عميلك الأول!</p>
+            <a asp-action="Create" class="add-client-btn">
+                <i class="fas fa-user-plus"></i>
+                إضافة عميل جديد
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    تأكيد الحذف
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-user-times" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                    <h5>هل أنت متأكد من حذف العميل؟</h5>
+                    <p class="text-muted">سيتم حذف العميل <strong id="deleteClientName"></strong> نهائياً. هذا الإجراء لا يمكن التراجع عنه.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash"></i>
+                    حذف نهائي
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTransactionModalLabel">
+                    <i class="fas fa-plus-circle"></i>
+                    إضافة معاملة جديدة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTransactionForm">
+                    <input type="hidden" id="clientId" name="ClientId" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="transactionType" class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    نوع المعاملة
+                                </label>
+                                <select id="transactionType" name="Type" class="form-select" required>
+                                    <option value="">اختر نوع المعاملة</option>
+                                    @foreach (var type in ViewData["TransactionTypes"] as List<Ledger__MVC.Controllers.TransactionController.TransactionTypeViewModel>)
+                                    {
+                                        <option value="@type.Id">@type.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    المبلغ (ج.م)
+                                </label>
+                                <input type="number" id="amount" name="Amount" class="form-control" step="0.01" min="0.01" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            التاريخ
+                        </label>
+                        <input type="date" id="date" name="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">
+                            <i class="fas fa-sticky-note"></i>
+                            الملاحظات
+                        </label>
+                        <textarea id="notes" name="Notes" class="form-control" rows="4" placeholder="أضف أي ملاحظات إضافية..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmAddTransaction">
+                    <i class="fas fa-plus"></i>
+                    إضافة المعاملة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        function deleteClient(id) {
-            if (confirm("هل أنت متأكد من حذف هذا العميل؟")) {
-                fetch(`/Client/DeleteConfirmed/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        alert("فشل الحذف");
+        $(document).ready(function () {
+            // Delete Modal
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var clientId = button.data('client-id');
+                var clientName = button.data('client-name');
+                var modal = $(this);
+                modal.find('#deleteClientName').text(clientName);
+                modal.find('#confirmDelete').data('client-id', clientId);
+            });
+
+            $('#confirmDelete').click(function () {
+                var clientId = $(this).data('client-id');
+                $.ajax({
+                    url: '@Url.Action("DeleteConfirmed", "Client")',
+                    type: 'POST',
+                    data: { id: clientId },
+                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#deleteModal').modal('hide');
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('حدث خطأ أثناء معالجة الطلب');
                     }
                 });
-            }
-        }
+            });
+
+            // Add Transaction Modal
+            $('#addTransactionModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var clientId = button.data('client-id');
+                var clientName = button.data('client-name');
+                var modal = $(this);
+                modal.find('#addTransactionModalLabel').html('<i class="fas fa-plus-circle"></i> إضافة معاملة جديدة لـ ' + clientName);
+                modal.find('#clientId').val(clientId);
+                modal.find('#addTransactionForm')[0].reset();
+                modal.find('#date').val('@DateTime.Now.ToString("yyyy-MM-dd")');
+            });
+
+            $('#confirmAddTransaction').click(function () {
+                var form = $('#addTransactionForm');
+                if (form[0].checkValidity()) {
+                    $.ajax({
+                        url: '@Url.Action("Create", "Transaction")',
+                        type: 'POST',
+                        data: form.serialize(),
+                        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                        success: function (response) {
+                            if (response.redirectTo) {
+                                window.location.href = response.redirectTo;
+                            } else if (response.success) {
+                                $('#addTransactionModal').modal('hide');
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            var errorMessage = xhr.responseJSON && xhr.responseJSON.message
+                                ? xhr.responseJSON.message
+                                : 'حدث خطأ أثناء معالجة الطلب';
+                            alert(errorMessage);
+                        }
+                    });
+                } else {
+                    form.addClass('was-validated');
+                }
+            });
+        });
     </script>
 }

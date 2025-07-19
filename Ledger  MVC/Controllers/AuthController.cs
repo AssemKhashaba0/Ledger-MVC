@@ -56,7 +56,6 @@ namespace Ledger__MVC.Controllers
             return View();
         }
 
-        // POST: /Auth/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
@@ -111,6 +110,15 @@ namespace Ledger__MVC.Controllers
                     _context.AuditLogs.Add(auditLog);
                     await _context.SaveChangesAsync();
 
+                    // التحقق مما إذا كان المستخدم أدمن
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        return RedirectToAction("Dashboard", "User"); // إعادة توجيه الأدمن إلى /User/Dashboard
+                    }else
+                    {
+                        return RedirectToAction("Index", "Client"); // إعادة توجيه المستخدم العادي إلى الصفحة الرئيسية
+                    }
+
                     return RedirectToLocal(returnUrl);
                 }
 
@@ -124,7 +132,6 @@ namespace Ledger__MVC.Controllers
                 return View(model);
             }
         }
-
         // GET: /Auth/Renewal
         [HttpGet]
         public IActionResult Renewal()

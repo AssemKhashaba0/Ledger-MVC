@@ -246,21 +246,70 @@ namespace Ledger__MVC.Controllers
                 // Send email
                 try
                 {
-                    string emailBody = $@"<h3>مرحبًا {model.FullName},</h3>
-            <p>تم إنشاء حسابك بنجاح في نظام Smart Ledger.</p>
-            <p>بيانات الدخول الخاصة بك:</p>
-            <ul>
-                <li><strong>البريد الإلكتروني:</strong> {model.Email}</li>
-                <li><strong>كلمة السر المؤقتة:</strong> {temporaryPassword}</li>
-            </ul>
-            <p>يرجى تغيير كلمة السر بعد تسجيل الدخول الأول لأسباب أمنية.</p>
-            <p>شكرًا لك!</p>";
-                    await _emailSender.SendEmailAsync(model.Email, "بيانات الدخول إلى Smart Ledger", emailBody);
+                    string emailBody = $@"
+    <!DOCTYPE html>
+    <html lang='ar' dir='rtl'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>بيانات الدخول إلى ASVS</title>
+        <style>
+            body {{ font-family: 'Arial', sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }}
+            .container {{ max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }}
+            .header {{ background-color: #6366f1; padding: 20px; text-align: center; color: #ffffff; }}
+            .header h1 {{ margin: 0; font-size: 20px; }}
+            .content {{ padding: 20px; }}
+            .greeting {{ font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }}
+            .message {{ margin-bottom: 15px; font-size: 14px; }}
+            .login-box {{ background-color: #f1f5f9; border-radius: 8px; padding: 15px; margin: 15px 0; border-right: 4px solid #6366f1; }}
+            .login-row {{ margin-bottom: 10px; }}
+            .login-label {{ font-weight: bold; color: #64748b; font-size: 14px; }}
+            .login-value {{ color: #1e293b; font-size: 14px; }}
+            .password-highlight {{ background-color: #a5b4fc; padding: 2px 8px; border-radius: 4px; border: 1px solid #4f46e5; font-weight: bold; }}
+            .footer {{ background-color: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }}
+            .footer-logo {{ font-weight: bold; color: #6366f1; margin-bottom: 5px; }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>مرحبًا بك في ASVS</h1>
+            </div>
+            <div class='content'>
+                <div class='greeting'>مرحبًا {model.FullName}،</div>
+                <div class='message'>
+                    <p>تم إنشاء حسابك بنجاح في <span style='color: #6366f1; font-weight: bold;'>ASVS</span>.</p>
+                    <p>بيانات الدخول الخاصة بك:</p>
+                </div>
+                <div class='login-box'>
+                    <div class='login-row'>
+                        <span class='login-label'>البريد الإلكتروني:</span>
+                        <span class='login-value'>{model.Email}</span>
+                    </div>
+                    <div class='login-row'>
+                        <span class='login-label'>كلمة السر المؤقتة:</span>
+                        <span class='login-value password-highlight'>{temporaryPassword}</span>
+                    </div>
+                </div>
+                <div class='message'>
+                    <p>يرجى تغيير كلمة السر بعد تسجيل الدخول الأول.</p>
+                </div>
+            </div>
+            <div class='footer'>
+                <img src='~/IMG/ASVS Logo.png' alt='ASVS Logo' style='max-width: 120px; height: auto; margin-bottom: 5px;'>
+                <div class='footer-logo'>ASVS</div>
+                <p>© {DateTime.Now.Year} ASVS. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
+                    await _emailSender.SendEmailAsync(model.Email, "بيانات الدخول إلى ASVS", emailBody);
                     TempData["Success"] = "تم إنشاء حساب المستخدم بنجاح وإرسال بيانات الدخول إلى البريد الإلكتروني.";
                 }
                 catch (Exception emailEx)
                 {
-                    TempData["Success"] = $"تم إنشاء الحساب بنجاح، لكن فشل إرسال البريد الإلكتروني إلى {model.Email}. كلمة السر المؤقتة: <strong>{temporaryPassword}</strong>. الرجاء إبلاغ المستخدم بكلمة السر يدويًا.";
+                    TempData["Success"] = $"تم إنشاء الح حساب بنجاح، لكن فشل إرسال البريد الإلكتروني إلى {model.Email}. كلمة السر المؤقتة: <strong>{temporaryPassword}</strong>. الرجاء إبلاغ المستخدم بكلمة السر يدويًا.";
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -407,7 +456,85 @@ namespace Ledger__MVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> Dashboard()
+        {
+            try
+            {
+                var today = DateTime.Today;
+                var startOfMonth = new DateTime(today.Year, today.Month, 1);
 
+                var model = new DashboardViewModel
+                {
+                    ActiveUsers = await _context.ApplicationUsers
+                        .CountAsync(u => u.Role == UserRole.User && u.IsActive && u.SubscriptionEndDate >= DateTime.Now),
+                    MonthlyRevenue = await _context.SubscriptionHistories
+                        .Where(s => s.StartDate >= startOfMonth && s.StartDate <= today)
+                        .SumAsync(s => s.Price),
+                    RecentUsers = await _context.ApplicationUsers
+                        .Where(u => u.Role == UserRole.User)
+                        .OrderByDescending(u => u.SubscriptionStartDate)
+                        .Take(5)
+                        .Select(u => new UserViewModel
+                        {
+                            Id = u.Id,
+                            FullName = u.FullName,
+                            SubscriptionType = u.SubscriptionType,
+                            SubscriptionEndDate = u.SubscriptionEndDate,
+                            IsActive = u.IsActive
+                        })
+                        .ToListAsync(),
+                    MonthlyRevenues = await _context.SubscriptionHistories
+                        .Where(s => s.StartDate.Year == today.Year)
+                        .GroupBy(s => s.StartDate.Month)
+                        .Select(g => new MonthlyRevenueViewModel
+                        {
+                            Month = g.Key,
+                            Revenue = g.Sum(s => s.Price)
+                        })
+                        .ToListAsync()
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"حدث خطأ أثناء استرجاع بيانات الداشبورد: {ex.Message}";
+                return View(new DashboardViewModel());
+            }
+        }
+
+        public class DashboardViewModel
+        {
+            public int ActiveUsers { get; set; }
+            public decimal MonthlyRevenue { get; set; }
+            public List<UserViewModel> RecentUsers { get; set; }
+            public List<MonthlyRevenueViewModel> MonthlyRevenues { get; set; }
+        }
+
+        public class MonthlyRevenueViewModel
+        {
+            public int Month { get; set; }
+            public decimal Revenue { get; set; }
+        }
+      
+        public class OverviewViewModel
+        {
+            public int TotalUsers { get; set; }
+            public int ActiveUsers { get; set; }
+            public int BlockedUsers { get; set; }
+            public int ExpiredSubscriptions { get; set; }
+            public int TotalClients { get; set; }
+            public int TotalTransactions { get; set; }
+            public List<SubscriptionDistributionViewModel> SubscriptionDistribution { get; set; }
+            public List<UserViewModel> Users { get; set; }
+        }
+
+        public class SubscriptionDistributionViewModel
+        {
+            public string SubscriptionType { get; set; }
+            public int Count { get; set; }
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -450,7 +577,56 @@ namespace Ledger__MVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> Overview(int page = 1)
+        {
+            try
+            {
+                var model = new OverviewViewModel
+                {
+                    TotalUsers = await _context.ApplicationUsers.CountAsync(u => u.Role == UserRole.User),
+                    ActiveUsers = await _context.ApplicationUsers.CountAsync(u => u.Role == UserRole.User && u.IsActive && u.SubscriptionEndDate >= DateTime.Now),
+                    BlockedUsers = await _context.ApplicationUsers.CountAsync(u => u.Role == UserRole.User && !u.IsActive),
+                    ExpiredSubscriptions = await _context.ApplicationUsers.CountAsync(u => u.Role == UserRole.User && u.SubscriptionEndDate < DateTime.Now),
+                    TotalClients = await _context.Clients.CountAsync(),
+                    TotalTransactions = await _context.FinancialTransactions.CountAsync(),
+                    SubscriptionDistribution = await _context.ApplicationUsers
+                        .Where(u => u.Role == UserRole.User)
+                        .GroupBy(u => u.SubscriptionType)
+                        .Select(g => new SubscriptionDistributionViewModel
+                        {
+                            SubscriptionType = g.Key.GetDisplayName(),
+                            Count = g.Count()
+                        })
+                        .ToListAsync(),
+                    Users = await _context.ApplicationUsers
+                        .Where(u => u.Role == UserRole.User)
+                        .Select(u => new UserViewModel
+                        {
+                            Id = u.Id,
+                            FullName = u.FullName,
+                            Email = u.Email,
+                            PhoneNumber = u.PhoneNumber,
+                            SubscriptionType = u.SubscriptionType,
+                            SubscriptionEndDate = u.SubscriptionEndDate,
+                            IsActive = u.IsActive,
+                            ClientsCount = u.Clients.Count,
+                            TransactionsCount = u.FinancialTransactions.Count,
+                            LastLogin = u.LastSeen ?? DateTime.MinValue
+                        })
+                        .OrderBy(u => u.FullName)
+                        .ToListAsync()
+                };
 
+                ViewData["PageNumber"] = page;
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"حدث خطأ أثناء استرجاع النظرة العامة: {ex.Message}";
+                return View(new OverviewViewModel());
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> Details(string id)
         {
@@ -508,4 +684,6 @@ namespace Ledger__MVC.Controllers
                 .ToList();
         }
     }
+
+
 }

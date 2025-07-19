@@ -1,0 +1,416 @@
+﻿@model Ledger__MVC.Controllers.UserController.OverviewViewModel
+@{
+    ViewData["Title"] = "نظرة عامة";
+    Layout = "/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@6.4.2/css/all.min.css" rel="stylesheet" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+
+    h2 {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    h3 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+        overflow: hidden;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .card-header {
+        background-color: var(--primary);
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card.bg-light .card-header {
+        background-color: var(--secondary);
+        color: var(--text-primary);
+        border-bottom-color: var(--border);
+    }
+
+    .card.bg-success .card-header {
+        background-color: var(--success);
+    }
+
+    .card.bg-danger .card-header {
+        background-color: var(--danger);
+    }
+
+    .card.bg-warning .card-header {
+        background-color: var(--warning);
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+        color: var(--text-primary);
+    }
+
+    /* Table Styling */
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead th {
+            background-color: var(--secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 0.75rem;
+            border-bottom: 2px solid var(--border);
+            text-align: right;
+        }
+
+        .table tbody td {
+            padding: 0.75rem;
+            border-top: 1px solid var(--border);
+            text-align: right;
+        }
+
+        .table tbody tr:nth-of-type(odd) {
+            background-color: var(--bg-primary);
+        }
+
+        .table tbody tr:nth-of-type(even) {
+            background-color: var(--bg-secondary);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--primary-light);
+        }
+
+    /* Badges */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .badge.bg-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+
+        .badge.bg-warning {
+            background-color: var(--warning);
+            color: #fff;
+        }
+
+        .badge.bg-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+
+    /* Chart Styling */
+    #subscriptionChart {
+        width: 100%;
+        max-width: 500px;
+        height: 300px;
+        margin: 1.5rem auto;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Pagination */
+    .pagination {
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .pagination .page-link {
+            color: var(--primary);
+            border: 1px solid var(--border);
+            margin: 0 0.2rem;
+            border-radius: var(--radius);
+            transition: background-color var(--transition), color var(--transition);
+        }
+
+            .pagination .page-link:hover {
+                background-color: var(--primary-light);
+                color: var(--primary-dark);
+            }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 767.98px) {
+        .col-md-3, .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .container {
+            padding: 1rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            min-width: 700px;
+        }
+
+        #subscriptionChart {
+            max-width: 100%;
+            height: 250px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .col-md-3, .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fas fa-eye me-2"></i> نظرة عامة</h2>
+    <div class="row">
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-light mb-3">
+                <div class="card-header"><i class="fas fa-users"></i> إجمالي المستخدمين</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.TotalUsers</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-success text-white mb-3">
+                <div class="card-header"><i class="fas fa-user-check"></i> المستخدمون النشطون</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.ActiveUsers</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-danger text-white mb-3">
+                <div class="card-header"><i class="fas fa-user-slash"></i> المستخدمون المحظورون</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.BlockedUsers</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-warning text-white mb-3">
+                <div class="card-header"><i class="fas fa-clock"></i> الاشتراكات المنتهية</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.ExpiredSubscriptions</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-light mb-3">
+                <div class="card-header"><i class="fas fa-user-friends"></i> إجمالي العملاء</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.TotalClients</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card bg-light mb-3">
+                <div class="card-header"><i class="fas fa-exchange-alt"></i> إجمالي المعاملات</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.TotalTransactions</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <h3 class="mt-4"><i class="fas fa-table me-2"></i> تفاصيل المستخدمين</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>نوع الاشتراك</th>
+                    <th>الحالة</th>
+                    <th>عدد العملاء</th>
+                    <th>عدد المعاملات</th>
+                    <th>آخر تسجيل دخول</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int pageSize = 10;
+                    int pageNumber = ViewData["PageNumber"] != null ? (int)ViewData["PageNumber"] : 1;
+                    var pagedUsers = Model.Users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+                    int totalPages = (int)Math.Ceiling((double)Model.Users.Count / pageSize);
+                }
+                @foreach (var user in pagedUsers)
+                {
+                    <tr>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@user.SubscriptionTypeDisplayName</td>
+                        <td>
+                            @{
+                                string statusText = user.IsActive
+                                ? (user.SubscriptionEndDate >= DateTime.Now ? "نشط" : "منتهي")
+                                : "محظور";
+                                string badgeClass = user.IsActive
+                                ? (user.SubscriptionEndDate >= DateTime.Now ? "bg-success" : "bg-warning")
+                                : "bg-danger";
+                            }
+                            <span class="badge @badgeClass">@statusText</span>
+                        </td>
+                        <td>@user.ClientsCount</td>
+                        <td>@user.TransactionsCount</td>
+                        <td>@user.LastLogin.ToString("yyyy-MM-dd HH:mm", new System.Globalization.CultureInfo("ar-EG"))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        <nav aria-label="User pagination">
+            <ul class="pagination">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == pageNumber ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Overview", new { page = i })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const ctx = document.getElementById('subscriptionChart').getContext('2d');
+        const subscriptionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.SubscriptionDistribution.Select(s => $"'{s.SubscriptionType}'")))],
+                datasets: [{
+                    label: 'توزيع الاشتراكات',
+                    data: [@Html.Raw(string.Join(",", Model.SubscriptionDistribution.Select(s => s.Count)))],
+                    backgroundColor: [
+                        'var(--primary)',
+                        'var(--success)',
+                        'var(--warning)',
+                        'var(--danger)',
+                        'var(--primary-light)',
+                        'var(--text-secondary)'
+                    ],
+                    borderColor: 'var(--bg-card)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'left',
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: 'Segoe UI'
+                            },
+                            color: 'var(--text-primary)',
+                            boxWidth: 20
+                        },
+                        rtl: true,
+                        textDirection: 'rtl'
+                    },
+                    tooltip: {
+                        enabled: true,
+                        rtl: true,
+                        textDirection: 'rtl',
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

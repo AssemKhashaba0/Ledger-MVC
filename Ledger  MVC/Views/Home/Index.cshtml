@@ -1,510 +1,1107 @@
 ﻿@{
     ViewData["Title"] = "الرئيسية";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
 }
 
-<div class="homepage-container">
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">سيبك من الورقة والقلم... وابدأ حساباتك صح!</h1>
-            <p class="hero-subtitle">أسهل دفتر إلكتروني لإدارة العملاء والموردين والمستحقات</p>
-            <p class="hero-description">من موبايلك أو لابتوبك – في أي وقت وأي مكان</p>
-
-            <div class="hero-cta">
-                <span class="price-highlight">بأقل من 7 جنيه في اليوم</span>
-                <p class="cta-description">تحافظ على فلوسك وتنظم شغلك وتبقى دايمًا فاهم اللي ليك واللي عليك!</p>
-                <a href="/Subscribe" class="btn-primary">اشترك الآن وابدأ حساباتك</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="features-section">
-        <div class="container">
-            <h2 class="section-title">ليه تختار دفترك الإلكتروني؟</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">إدارة العملاء والموردين</h3>
-                    <p class="feature-description">أضف عملاءك وموردينك بسهولة وتابع كل التعاملات معاهم في مكان واحد</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2">
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">حساب تلقائي لكل فلوسك</h3>
-                    <p class="feature-description">النظام بيحسب كل حاجة تلقائيًا - مش محتاج تعمل أي حسابات بنفسك</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2">
-                            <path d="M3 3v18h18" />
-                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">تقارير يومية وشهرية</h3>
-                    <p class="feature-description">شوف أرباحك وخسائرك بتقارير واضحة ومفصلة لكل فترة</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2">
-                            <path d="M9 12l2 2 4-4" />
-                            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
-                            <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3" />
-                            <path d="M3 12c0 5.5 4.5 10 10 10s10-4.5 10-10" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">آمن – سريع – سهل</h3>
-                    <p class="feature-description">بياناتك محمية بأعلى مستويات الأمان وسرعة في الاستخدام</p>
-                </div>
-
-                <div class="feature-card feature-card-highlight">
-                    <div class="feature-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2">
-                            <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.46 9-11V7l-10-5z" />
-                            <path d="M9 12l2 2 4-4" />
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">مصمم للمشاريع الصغيرة</h3>
-                    <p class="feature-description">مخصوص لأصحاب المشاريع الصغيرة والتجار - سهل ومش معقد</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="pricing-section">
-        <div class="pricing-card">
-            <div class="pricing-header">
-                <h2 class="pricing-title">200 جنيه فقط شهريًا</h2>
-                <p class="pricing-subtitle">يعني أقل من كوباية شاي في اليوم</p>
-            </div>
-            <div class="pricing-body">
-                <a href="/Subscribe" class="btn-primary btn-large">اشترك الآن وابدأ حساباتك</a>
-                <p class="pricing-note">بدون تجربة مجانية – بدون تعقيد – اشتراك مباشر</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="contact-section">
-        <div class="contact-content">
-            <p class="contact-question">لسه مش واثق؟</p>
-            <a href="https://wa.me/201000000000" target="_blank" class="contact-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                </svg>
-                ابعتلنا على واتساب وهنشرحلك في دقيقة
-            </a>
-        </div>
-    </section>
-</div>
-
-<style>
-    /* General Styles & Body */
-    .homepage-container {
-        background-color: #FAFAFA; /* Background */
-        color: #1E1E1E; /* Text Main */
-        min-height: 100vh;
-        font-family: 'Cairo', sans-serif; /* استخدام خط عربي جذاب */
-        line-height: 1.6;
-        direction: rtl; /* للغة العربية */
-        text-align: right; /* للغة العربية */
-    }
-
-    /* Importing Google Font (Cairo) */
-    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-
-    /* Hero Section */
-    .hero-section {
-        padding: 5rem 1rem; /* زيادة الـ padding */
-        text-align: center;
-        background: linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%); /* مزيج من Background و Surface */
-        position: relative;
-        overflow: hidden;
-        border-bottom: 1px solid #E5E7EB; /* Border */
-    }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0; /* تعديل ليتناسب مع RTL */
-            bottom: 0;
-            left: unset; /* تعديل ليتناسب مع RTL */
-            background: radial-gradient(circle at 70% 20%, rgba(212, 175, 55, 0.1) 0%, transparent 50%); /* تأثير ذهبي خفيف */
-            pointer-events: none;
-            width: 100%;
-            height: 100%;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دفتر - أسهل دفتر إلكتروني لإدارة العملاء والموردين</title>
+    <link rel="icon" type="image/png" href="ASVS Logo.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS Variables based on user's input */
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 60px;
+            --header-height: 64px;
+            --transition: 0.3s ease;
         }
 
-    .hero-content {
-        max-width: 900px;
-        margin: 0 auto;
-        position: relative;
-        z-index: 1;
-    }
-
-    .hero-title {
-        font-size: clamp(2.2rem, 4.5vw, 3.5rem); /* تكبير الخط أكثر */
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        color: #1E1E1E; /* Text Main */
-        text-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .hero-subtitle {
-        font-size: clamp(1.2rem, 2.8vw, 1.6rem); /* تكبير الخط */
-        color: #6B7280; /* Text Secondary */
-        margin-bottom: 0.75rem;
-        font-weight: 600; /* خط أثقل قليلاً */
-    }
-
-    .hero-description {
-        font-size: clamp(1.1rem, 2.2vw, 1.4rem); /* تكبير الخط */
-        color: #6B7280; /* Text Secondary */
-        margin-bottom: 2.5rem;
-    }
-
-    .hero-cta {
-        margin-top: 3rem; /* زيادة المسافة */
-        background: #FFFFFF; /* Surface */
-        padding: 2.5rem; /* زيادة الـ padding */
-        border-radius: 16px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* ظل أوضح */
-        display: inline-block; /* لضمان أن الـ shadow يحيط بالمحتوى فقط */
-        width: auto;
-        max-width: 100%;
-    }
-
-    .price-highlight {
-        font-size: clamp(1.5rem, 3.5vw, 2.2rem); /* تكبير الخط أكثر */
-        color: #D4AF37; /* Primary */
-        font-weight: 700;
-        display: block;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 4px rgba(212, 175, 55, 0.4);
-    }
-
-    .cta-description {
-        margin-bottom: 2rem;
-        font-size: 1.2rem; /* تكبير الخط */
-        color: #374151; /* لون قريب من Text Main للحصول على تباين جيد */
-        max-width: 500px; /* لتقييد عرض النص */
-        margin-left: auto; /* لوسيطة النص في RTL */
-        margin-right: auto; /* لوسيطة النص في RTL */
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%); /* Primary */
-        color: white;
-        padding: 1.2rem 3rem; /* زيادة الـ padding */
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.2rem; /* تكبير الخط */
-        display: inline-block;
-        transition: all 0.3s ease;
-        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4); /* ظل أقوى */
-        border: none;
-        cursor: pointer;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-3px); /* تأثير رفع أوضح */
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5); /* ظل أكبر عند التحويم */
-            background: linear-gradient(135deg, #B8941F 0%, #D4AF37 100%);
+        /* Base styles using custom variables */
+        body {
+            font-family: 'Inter', sans-serif;
+            direction: rtl; /* Right-to-left for Arabic */
+            text-align: right; /* Default text alignment for Arabic */
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-    .btn-large {
-        padding: 1.5rem 3.5rem; /* حجم أكبر للزر */
-        font-size: 1.3rem;
-    }
-
-    /* Features Section */
-    .features-section {
-        padding: 6rem 1rem; /* زيادة الـ padding */
-        background: #FFFFFF; /* Surface */
-    }
-
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .section-title {
-        text-align: center;
-        font-size: clamp(2rem, 3.5vw, 2.8rem); /* تكبير الخط أكثر */
-        margin-bottom: 4rem; /* زيادة المسافة */
-        color: #1E1E1E; /* Text Main */
-        font-weight: 700;
-        position: relative;
-    }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -15px; /* وضع الخط تحت العنوان */
-            right: 50%; /* لتوسيط الخط في RTL */
-            transform: translateX(50%); /* لضبط التوسيط */
-            width: 80px;
-            height: 4px;
-            background-color: #D4AF37; /* Primary */
-            border-radius: 2px;
+        /* Custom Tailwind-like utility classes for colors and shadows */
+        .bg-background {
+            background-color: var(--bg-primary);
         }
 
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* تعديل الـ minmax للحصول على 3 أعمدة في المساحات الأكبر */
-        gap: 2.5rem; /* زيادة المسافة بين البطاقات */
-        margin-top: 3rem;
-    }
-
-    .feature-card {
-        background: #FFFFFF; /* Surface */
-        border: 1px solid #E5E7EB; /* Border */
-        border-radius: 16px;
-        padding: 2.5rem; /* زيادة الـ padding */
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        text-align: right; /* للغة العربية */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* ظل خفيف للبطاقات */
-    }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0; /* تعديل ليتناسب مع RTL */
-            left: unset; /* تعديل ليتناسب مع RTL */
-            width: 4px; /* تغيير الشريط إلى الجانب الأيمن */
-            height: 100%;
-            background: linear-gradient(180deg, #A78BFA 0%, #D4AF37 100%); /* Accent و Primary */
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        .bg-surface {
+            background-color: var(--bg-card);
         }
 
-        .feature-card:hover {
-            transform: translateY(-8px); /* تأثير رفع أوضح */
-            box-shadow: 0 15px 40px rgba(167, 139, 250, 0.2); /* ظل أكبر وأقوى */
-            border-color: #A78BFA; /* Accent */
+        .bg-primary {
+            background-color: var(--primary);
         }
 
-            .feature-card:hover::before {
+        .bg-accent {
+            background-color: var(--primary-light);
+        }
+
+        .bg-success {
+            background-color: var(--success);
+        }
+
+        .bg-danger {
+            background-color: var(--danger);
+        }
+
+        .text-main {
+            color: var(--text-primary);
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-primary {
+            color: var(--primary);
+        }
+
+        .text-accent {
+            color: var(--primary-light);
+        }
+
+        .text-success {
+            color: var(--success);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+        /* Added text-muted utility */
+
+
+        .border-base {
+            border-color: var(--border);
+        }
+
+        .shadow-base {
+            box-shadow: var(--shadow);
+        }
+
+        .shadow-md-base {
+            box-shadow: var(--shadow-md);
+        }
+
+        .shadow-lg-base {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .rounded-base {
+            border-radius: var(--radius);
+        }
+
+        .transition-base {
+            transition: all var(--transition);
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @@keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
                 opacity: 1;
             }
 
-    .feature-card-highlight {
-        background: linear-gradient(135deg, #F9FAFB 0%, #FAFAFA 100%); /* مزيج من Background و Surface */
-        border-color: #D4AF37; /* Primary */
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.1); /* ظل ذهبي مميز */
-    }
+            70% {
+                transform: scale(0.9);
+            }
 
-    .feature-icon {
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end; /* ليتناسب مع RTL */
-        margin-right: -10px; /* لتعويض المسافة */
-    }
-
-        .feature-icon svg {
-            stroke: #A78BFA; /* Accent */
+            100% {
+                transform: scale(1);
+            }
         }
 
-    .feature-card-highlight .feature-icon svg {
-        stroke: #D4AF37; /* Primary للبطاقة المميزة */
-    }
-
-    .feature-title {
-        color: #1E1E1E; /* Text Main */
-        font-size: 1.4rem; /* تكبير الخط */
-        font-weight: 700;
-        margin-bottom: 0.8rem;
-    }
-
-    .feature-description {
-        color: #6B7280; /* Text Secondary */
-        font-size: 1.05rem; /* تكبير الخط قليلاً */
-        line-height: 1.8;
-    }
-
-    /* Pricing Section */
-    .pricing-section {
-        padding: 5rem 1rem;
-        background: linear-gradient(135deg, #FAFAFA 0%, #F9FAFB 100%); /* مزيج من Background و Surface */
-        border-top: 1px solid #E5E7EB; /* Border */
-    }
-
-    .pricing-card {
-        background: #FFFFFF; /* Surface */
-        border: 2px solid #E5E7EB; /* Border */
-        max-width: 750px; /* عرض أكبر للبطاقة */
-        margin: 0 auto;
-        border-radius: 20px;
-        padding: 3.5rem 2.5rem; /* زيادة الـ padding */
-        text-align: center;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12); /* ظل أقوى */
-        position: relative;
-        overflow: hidden;
-    }
-
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0; /* تعديل ليتناسب مع RTL */
-            left: unset; /* تعديل ليتناسب مع RTL */
-            width: 100%;
-            height: 8px; /* شريط أعلى سميك */
-            background: linear-gradient(90deg, #10B981 0%, #D4AF37 100%); /* Success و Primary */
+        .animate-fadeIn {
+            animation: fadeIn 1s ease-out forwards;
         }
 
-    .pricing-header {
-        margin-bottom: 2.5rem;
-    }
-
-    .pricing-title {
-        font-size: clamp(2rem, 4.5vw, 3rem); /* تكبير الخط أكثر */
-        color: #10B981; /* Success */
-        font-weight: 700;
-        margin-bottom: 1rem;
-    }
-
-    .pricing-subtitle {
-        color: #6B7280; /* Text Secondary */
-        font-size: 1.2rem; /* تكبير الخط */
-        margin-bottom: 0;
-    }
-
-    .pricing-body {
-        margin-top: 2.5rem;
-    }
-
-    .pricing-note {
-        margin-top: 1.5rem;
-        color: #EF4444; /* Danger */
-        font-weight: 600; /* خط أثقل */
-        font-size: 1rem; /* تكبير الخط قليلاً */
-    }
-
-    /* Contact Section */
-    .contact-section {
-        padding: 4rem 1rem;
-        text-align: center;
-        background: #FFFFFF; /* Surface */
-        border-top: 1px solid #E5E7EB; /* Border */
-    }
-
-    .contact-content {
-        max-width: 600px; /* عرض أكبر لمحتوى التواصل */
-        margin: 0 auto;
-        background: #FAFAFA; /* Background */
-        padding: 2rem;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    }
-
-    .contact-question {
-        color: #6B7280; /* Text Secondary */
-        font-size: 1.2rem; /* تكبير الخط */
-        margin-bottom: 1.5rem;
-        font-weight: 600;
-    }
-
-    .contact-link {
-        color: #A78BFA; /* Accent */
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.2rem; /* تكبير الخط */
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem; /* زيادة المسافة بين الأيقونة والنص */
-        transition: all 0.3s ease;
-        padding: 0.8rem 1.8rem;
-        border-radius: 10px;
-        border: 1px solid #A78BFA; /* Border بنفس لون الـ Accent */
-    }
-
-        .contact-link svg {
-            stroke: #A78BFA; /* Accent */
+        .animate-slideInRight {
+            animation: slideInRight 1s ease-out forwards;
         }
 
-        .contact-link:hover {
-            background: rgba(167, 139, 250, 0.15); /* خلفية أغمق عند التحويم */
-            transform: translateY(-3px); /* تأثير رفع أوضح */
-            box-shadow: 0 6px 15px rgba(167, 139, 250, 0.25);
+        .animate-bounceIn {
+            animation: bounceIn 0.8s ease-out forwards;
         }
 
-    /* Responsive Adjustments */
-    @@media (max-width: 768px) {
-        .hero-section {
-            padding: 4rem 1rem;
+        /* Specific animation delays */
+        .delay-100 {
+            animation-delay: 0.1s;
         }
 
-        .hero-title {
-            font-size: clamp(1.8rem, 5vw, 2.8rem);
+        .delay-200 {
+            animation-delay: 0.2s;
         }
 
-        .features-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* ضبط الأعمدة للشاشات الصغيرة */
-            gap: 2rem;
+        .delay-300 {
+            animation-delay: 0.3s;
         }
 
-        .feature-card {
-            padding: 2rem;
+        .delay-400 {
+            animation-delay: 0.4s;
         }
 
-        .pricing-card {
-            padding: 3rem 1.5rem;
+        .delay-500 {
+            animation-delay: 0.5s;
         }
 
-        .features-section {
-            padding: 4rem 1rem;
+        .delay-600 {
+            animation-delay: 0.6s;
         }
 
-        .section-title {
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            margin-bottom: 3rem;
-        }
-    }
-
-    @@media (max-width: 480px) {
-        .features-grid {
-            grid-template-columns: 1fr;
+        .delay-700 {
+            animation-delay: 0.7s;
         }
 
-        .feature-card {
-            min-width: unset;
+        .delay-800 {
+            animation-delay: 0.8s;
         }
 
-        .hero-cta {
-            padding: 1.5rem;
+        .delay-900 {
+            animation-delay: 0.9s;
         }
 
+        .delay-1000 {
+            animation-delay: 1s;
+        }
+
+
+        /* Countdown specific styles */
+        .countdown-timer {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem; /* Larger for impact */
+            color: var(--primary); /* Primary color for countdown */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: -5px;
+        }
+
+        /* Header specific styling */
+        .header-logo {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+            .header-logo span {
+                color: var(--text-primary);
+            }
+
+        .header-nav a {
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: color var(--transition);
+        }
+
+            .header-nav a:hover {
+                color: var(--primary);
+            }
+
+        /* Buttons */
         .btn-primary {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
+            background-color: var(--primary);
+            color: var(--bg-primary);
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+            transition: background-color var(--transition), box-shadow var(--transition);
         }
 
-        .btn-large {
-            padding: 1.1rem 2.2rem;
-            font-size: 1.15rem;
+            .btn-primary:hover {
+                background-color: var(--primary-dark);
+                box-shadow: var(--shadow-lg);
+            }
+
+        .btn-secondary {
+            background-color: var(--primary-light);
+            color: var(--bg-primary);
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+            transition: background-color var(--transition), box-shadow var(--transition);
         }
 
-        .contact-link {
+            .btn-secondary:hover {
+                background-color: var(--primary);
+                box-shadow: var(--shadow-lg);
+            }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 10px 26px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: background-color var(--transition), color var(--transition);
+        }
+
+            .btn-outline:hover {
+                background-color: var(--primary);
+                color: var(--bg-primary);
+            }
+
+        /* أزرار جميلة جديدة */
+        .btn-fancy {
+            background: #6366F1;
+            color: white;
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            text-align: center;
+            display: inline-block;
+        }
+
+            .btn-fancy:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+            }
+
+            .btn-fancy:active {
+                transform: translateY(1px);
+            }
+
+            .btn-fancy::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+                opacity: 0;
+                z-index: -1;
+                transition: opacity 0.3s ease;
+            }
+
+            .btn-fancy:hover::before {
+                opacity: 1;
+            }
+
+        /* زر مع تأثير نبض */
+        .btn-pulse {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            border: none;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            display: inline-block;
+            text-align: center;
+        }
+
+        /* Override for buttons on primary background */
+        .bg-primary .btn-pulse,
+        .bg-primary .btn-fancy,
+        .bg-primary .btn-glow,
+        .bg-primary .btn-3d {
+            background-color: white;
+            color: var(--primary);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.5);
+            transform: translateY(-3px);
+            transition: all 0.3s ease;
+        }
+
+            .bg-primary .btn-pulse:hover,
+            .bg-primary .btn-fancy:hover,
+            .bg-primary .btn-glow:hover,
+            .bg-primary .btn-3d:hover {
+                background-color: var(--primary);
+                color: white;
+            }
+
+        @@keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        /* زر مع تأثير توهج */
+        .btn-glow {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            display: inline-block;
+            text-align: center;
+        }
+
+            .btn-glow::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: conic-gradient( transparent, rgba(255, 255, 255, 0.3), transparent 30% );
+                opacity: 0;
+                z-index: -1;
+                transition: opacity 0.3s ease;
+            }
+
+            .btn-glow:hover::after {
+                opacity: 1;
+                animation: rotate 2s linear infinite;
+            }
+
+        @@keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* زر مع تأثير 3D */
+        .btn-3d {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 6px 0 var(--primary-dark);
+            transition: all 0.1s ease;
+            top: 0;
+            display: inline-block;
+            text-align: center;
+        }
+
+            .btn-3d:hover {
+                top: 2px;
+                box-shadow: 0 4px 0 var(--primary-dark);
+            }
+
+            .btn-3d:active {
+                top: 6px;
+                box-shadow: 0 0 0 var(--primary-dark);
+            }
+
+        /* Feature Cards */
+        .feature-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+                background-color: var(--primary-light);
+                color: white;
+            }
+
+                .feature-card:hover h3 {
+                    color: white;
+                }
+
+                .feature-card:hover p {
+                    color: rgba(255, 255, 255, 0.9);
+                }
+
+                .feature-card:hover .feature-icon-wrapper {
+                    background-color: white;
+                    color: var(--primary);
+                }
+
+        .card-animate {
+            animation: bounceIn 0.8s ease-out forwards;
+        }
+
+        .feature-icon-wrapper {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Testimonial Card */
+        .testimonial-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .testimonial-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            }
+
+            .testimonial-card::before {
+                content: '\201C';
+                position: absolute;
+                top: -15px;
+                left: 10px;
+                font-size: 100px;
+                color: #6366F1 !important;
+                opacity: 0.5;
+                font-family: serif;
+            }
+
+            .testimonial-card:hover::before {
+                color: #6366F1;
+                opacity: 1;
+            }
+
+            .testimonial-card .fa-star {
+                color: #f59e0b;
+            }
+
+        /* Contact Form */
+        .form-input, .form-textarea {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            color: var(--text-primary);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+            .form-input:focus, .form-textarea:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            }
+
+        /* How to Subscribe Steps */
+        .step-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+            .step-card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
+            }
+
+        .step-number {
+            background-color: var(--primary);
+            color: var(--bg-primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
             font-size: 1rem;
-            padding: 0.6rem 1.2rem;
         }
-    }
-</style>
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-white shadow-base py-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center px-4 md:px-8">
+            <div class="flex items-center">
+                <img src="~/IMG/ASVS Logo.png" alt="دفترك الإلكتروني" class="h-10 md:h-12">
+            </div>
+            <nav class="hidden md:flex flex-1 justify-center">
+                <ul class="flex space-x-6 lg:space-x-8 space-x-reverse header-nav">
+                    <li><a href="#hero" class="hover:text-primary text-sm lg:text-base">الرئيسية</a></li>
+                    <li><a href="#features" class="hover:text-primary text-sm lg:text-base">لماذا دفتر؟</a></li>
+                    <li><a href="#testimonials" class="hover:text-primary text-sm lg:text-base">آراء العملاء</a></li>
+                    <li><a href="#how-to-subscribe" class="hover:text-primary text-sm lg:text-base">كيف تشترك؟</a></li>
+                    <li><a href="#pricing" class="hover:text-primary text-sm lg:text-base">الاشتراك</a></li>
+                    <li><a href="#contact" class="hover:text-primary text-sm lg:text-base">تواصل معنا</a></li>
+                </ul>
+            </nav>
+            <button id="mobile-menu-btn" class="md:hidden text-text-primary">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-white border-t border-border-color hidden">
+            <ul class="py-4 space-y-2">
+                <li><a href="#hero" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">الرئيسية</a></li>
+                <li><a href="#features" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">لماذا دفتر؟</a></li>
+                <li><a href="#testimonials" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">آراء العملاء</a></li>
+                <li><a href="#how-to-subscribe" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">كيف تشترك؟</a></li>
+                <li><a href="#pricing" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">الاشتراك</a></li>
+                <li><a href="#contact" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">تواصل معنا</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="bg-bg-secondary py-20 md:py-25 text-center overflow-hidden">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-12">
+            <div class="md:w-1/2 text-center md:text-right animate-fadeIn">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-text-primary">
+                    سيبك من الورقة والقلم...<br>وابدأ <span class="text-primary">حساباتك صح!</span>
+                </h1>
+                <p class="text-lg md:text-xl text-text-secondary mb-8 animate-fadeIn delay-200">
+                    أسهل دفتر إلكتروني لإدارة العملاء والموردين والمستحقات
+                </p>
+                <p class="text-xl md:text-2xl text-primary-light font-semibold mb-8 animate-fadeIn delay-400">
+                    من موبايلك أو لابتوبك – في أي وقت وأي مكان
+                </p>
+                <p class="text-2xl md:text-3xl text-text-primary font-bold mb-10 animate-fadeIn delay-600">
+                    بأقل من <span class="text-primary">7 جنيه</span> في اليوم
+                </p>
+                <p class="text-lg md:text-xl text-text-secondary mb-10 animate-fadeIn delay-700">
+                    تحافظ على فلوسك وتنظم شغلك وتبقى دايمًا فاهم اللي ليك واللي عليك!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-4 animate-fadeIn delay-800">
+                    <a href="/auth/LOGIN" class="btn-primary text-lg hover:scale-105 transform transition-transform">
+                        سجل دخول
+                    </a>
+                </div>
+            </div>
+            <div class="  animate-slideInRight">
+                <!-- Placeholder for image, replace with actual image later -->
+                <img src="~/IMG/ASVS Logo.png" alt="Dashboard Mockup" class="w-75 h-30 mx-auto  rounded-base shadow-lg-base">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="bg-bg-primary py-20 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-text-primary animate-fadeIn delay-100">
+                ليه تختار <span class="text-primary-light">دفترك الإلكتروني؟</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-200">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary">إدارة العملاء والموردين</h3>
+                    <p class="text-text-secondary">
+                        أضف عملاءك وموردينك بسهولة وتابع كل التعاملات معاهم في مكان واحد
+                    </p>
+                </div>
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-300">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary">حساب تلقائي لكل فلوسك</h3>
+                    <p class="text-text-secondary">
+                        النظام بيحسب كل حاجة تلقائيًا - مش محتاج تعمل أي حسابات بنفسك
+                    </p>
+                </div>
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-400">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary"> شوف اي الي ليك واي الي عليك</h3>
+                    <p class="text-text-secondary">
+                        شوف أرباحك وخسائرك بتقارير واضحة ومفصلة لكل فترة
+                    </p>
+                </div>
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-500">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary">آمن – سريع – سهل</h3>
+                    <p class="text-text-secondary">
+                        بياناتك محمية بأعلى مستويات الأمان وسرعة في الاستخدام
+                    </p>
+                </div>
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-600">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary">مصمم للمشاريع الصغيرة</h3>
+                    <p class="text-text-secondary">
+                        مخصوص لأصحاب المشاريع الصغيرة والتجار - سهل ومش معقد
+                    </p>
+                </div>
+                <div class="feature-card p-8 flex flex-col items-center text-center card-animate delay-700">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-text-primary">متوفر على كل الأجهزة</h3>
+                    <p class="text-text-secondary">
+                        استخدم دفترك من الموبايل أو اللابتوب أو التابلت في أي وقت وأي مكان
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Subscribe Section -->
+    <section id="how-to-subscribe" class="bg-bg-secondary py-20 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-text-primary animate-fadeIn delay-100">
+                كيف تشترك في دفترك الإلكتروني؟
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="step-card animate-bounceIn delay-200">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">اختر خطة الاشتراك</h3>
+                    <p class="step-description">
+                        اختر خطة "200 جنيه فقط شهريًا" التي تناسب احتياجاتك.
+                    </p>
+                </div>
+                <div class="step-card animate-bounceIn delay-400">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">ادفع عبر الكاش</h3>
+                    <p class="step-description">
+                        قم بتحويل المبلغ إلى رقم الكاش التالي: <span class="font-bold text-primary">01XXXXXXXXX</span><br>
+                        (يرجى استبدال هذا الرقم برقم الكاش الخاص بك)
+                    </p>
+                </div>
+                <div class="step-card animate-bounceIn delay-600">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">ابدأ استخدام دفترك</h3>
+                    <p class="step-description">
+                        بعد تأكيد الدفع، سيتم تفعيل اشتراكك فورًا لتبدأ في تنظيم حساباتك.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="bg-bg-secondary py-20 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-text-primary animate-fadeIn">
+                ماذا يقول عملاؤنا
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="testimonial-card p-8 animate-fadeIn delay-200">
+                    <div class="flex justify-center mb-4">
+                        <div class="flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary mb-6 text-lg">"بفضل دفتر الإلكتروني، أصبحت أعرف بالظبط مين مديون لي ومين أنا مديون له. وفرت عليا وقت كتير جدا!"</p>
+                    <div class="flex items-center justify-center">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">أم</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-text-primary">أحمد محمود</h4>
+                            <p class="text-text-muted">صاحب محل ملابس</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card p-8 animate-fadeIn delay-400">
+                    <div class="flex justify-center mb-4">
+                        <div class="flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary mb-6 text-lg">"كنت بضيع فلوس كتير بسبب الحسابات الغلط. دلوقتي بفضل دفتر بقيت أعرف بالظبط اللي داخل واللي خارج."</p>
+                    <div class="flex items-center justify-center">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">سع</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-text-primary">سارة علي</h4>
+                            <p class="text-text-muted">صاحبة مشروع أكل منزلي</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card p-8 animate-fadeIn delay-600">
+                    <div class="flex justify-center mb-4">
+                        <div class="flex">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary mb-6 text-lg">"أنا مش بتاع تكنولوجيا خالص، بس دفتر سهل جدا في الاستخدام. بقيت أعرف أتعامل معاه من أول يوم."</p>
+                    <div class="flex items-center justify-center">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">مع</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-text-primary">محمد عبدالله</h4>
+                            <p class="text-text-muted">صاحب بقالة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="bg-bg-primary py-20 md:py-24 text-center">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-text-primary animate-fadeIn">
+                خطط الاشتراك
+            </h2>
+            <div class="mb-10 animate-bounceIn">
+                <p class="text-xl font-bold text-danger mb-2">عرض خاص ينتهي اليوم!</p>
+                <div class="flex justify-center items-center space-x-4 space-x-reverse">
+                    <div class="text-center">
+                        <div id="hours" class="countdown-timer">00</div>
+                        <div class="countdown-label">ساعة</div>
+                    </div>
+                    <div class="text-4xl font-bold text-primary">:</div>
+                    <div class="text-center">
+                        <div id="minutes" class="countdown-timer">00</div>
+                        <div class="countdown-label">دقيقة</div>
+                    </div>
+                    <div class="text-4xl font-bold text-primary">:</div>
+                    <div class="text-center">
+                        <div id="seconds" class="countdown-timer">00</div>
+                        <div class="countdown-label">ثانية</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- الخطة الشهرية (المميزة) -->
+                <div class="bg-bg-card p-8 rounded-base shadow-lg-base border-2 border-primary relative transform hover:scale-105 transition-all duration-300 animate-bounceIn delay-200 text-center flex flex-col">
+                    <div class="absolute -top-4 right-0 left-0 mx-auto w-max bg-primary text-white px-4 py-1 rounded-full font-bold text-sm">
+                        الأكثر مرونة
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 text-primary">
+                        الخطة الشهرية
+                    </h3>
+                    <div class="text-3xl font-bold mb-1 text-text-primary">
+                        200 <span class="text-lg">جنيه</span>
+                    </div>
+                    <p class="text-text-secondary mb-6">
+                        شهرياً - أقل من 7 جنيه في اليوم
+                    </p>
+                    <ul class="text-right text-text-secondary mb-8 space-y-2">
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> بدون التزام طويل المدى</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> مرونة في الإلغاء</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> تجديد تلقائي</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> دعم فني كامل</li>
+                    </ul>
+                    <a href="#how-to-subscribe" class="btn-primary w-full text-lg flex items-center justify-center hover:scale-105 transform transition-transform mt-auto">
+                        اشترك الآن
+                    </a>
+                </div>
+
+                <!-- الخطة ربع السنوية -->
+                <div class="bg-bg-card p-8 rounded-base shadow-md-base border border-border-color animate-bounceIn delay-300 text-center">
+                    <h3 class="text-xl font-bold mb-2 text-text-primary">
+                        الخطة ربع السنوية
+                    </h3>
+                    <div class="text-2xl font-bold mb-1 text-text-primary">
+                        600 <span class="text-lg">جنيه</span>
+                    </div>
+                    <p class="text-text-secondary mb-6">
+                        كل 3 شهور - بدون خصم
+                    </p>
+                    <ul class="text-right text-text-secondary mb-8 space-y-2">
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> التزام متوسط المدى</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> دعم فني كامل</li>
+                        <li class="text-text-muted"><i class="fas fa-times-circle text-text-muted mr-2"></i> بدون خصم</li>
+                    </ul>
+                    <a href="#how-to-subscribe" class="btn-outline w-full text-lg flex items-center justify-center hover:scale-105 transform transition-transform">
+                        اشترك الآن
+                    </a>
+                </div>
+
+                <!-- الخطة نصف السنوية -->
+                <div class="bg-bg-card p-8 rounded-base shadow-md-base border border-border-color animate-bounceIn delay-400 text-center">
+                    <h3 class="text-xl font-bold mb-2 text-text-primary">
+                        الخطة نصف السنوية
+                    </h3>
+                    <div class="text-2xl font-bold mb-1 text-text-primary">
+                        1200 <span class="text-lg">جنيه</span>
+                    </div>
+                    <p class="text-text-secondary mb-6">
+                        كل 6 شهور - بدون خصم
+                    </p>
+                    <ul class="text-right text-text-secondary mb-8 space-y-2">
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> التزام طويل المدى</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> دعم فني كامل</li>
+                        <li class="text-text-muted"><i class="fas fa-times-circle text-text-muted mr-2"></i> بدون خصم</li>
+                    </ul>
+                    <a href="#how-to-subscribe" class="btn-outline w-full text-lg flex items-center justify-center hover:scale-105 transform transition-transform">
+                        اشترك الآن
+                    </a>
+                </div>
+
+                <!-- الخطة السنوية -->
+                <div class="bg-bg-card p-8 rounded-base shadow-md-base border border-border-color animate-bounceIn delay-500 text-center">
+                    <h3 class="text-xl font-bold mb-2 text-text-primary">
+                        الخطة السنوية
+                    </h3>
+                    <div class="text-2xl font-bold mb-1 text-text-primary">
+                        2500 <span class="text-lg">جنيه</span>
+                    </div>
+                    <p class="text-text-secondary mb-6">
+                        سنوياً - توفير بسيط
+                    </p>
+                    <ul class="text-right text-text-secondary mb-8 space-y-2">
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> التزام طويل المدى</li>
+                        <li><i class="fas fa-check-circle text-success mr-2"></i> دعم فني كامل</li>
+                        <li><i class="fas fa-check-circle text-text-muted mr-2"></i> خصم بسيط</li>
+                    </ul>
+                    <a href="#how-to-subscribe" class="btn-outline w-full text-lg flex items-center justify-center hover:scale-105 transform transition-transform">
+                        اشترك الآن
+                    </a>
+                </div>
+            </div>
+
+            <p class="mt-8 text-lg text-text-secondary animate-fadeIn delay-600">
+                اختر الخطة الشهرية للمرونة القصوى وإمكانية الإلغاء في أي وقت!
+            </p>
+
+            <!-- Subscription Buttons -->
+            <div class="flex flex-wrap justify-center gap-4 mt-8">
+                <a href="#how-to-subscribe" class="btn-primary text-lg flex items-center justify-center px-8 py-3 rounded-base font-bold">اشترك الآن (شهري)</a>
+                <a href="#how-to-subscribe" class="btn-outline text-lg flex items-center justify-center px-8 py-3 rounded-base font-bold">اشترك الآن (ربع سنوي)</a>
+                <a href="#how-to-subscribe" class="btn-outline text-lg flex items-center justify-center px-8 py-3 rounded-base font-bold">اشترك الآن (نصف سنوي)</a>
+                <a href="#how-to-subscribe" class="btn-outline text-lg flex items-center justify-center px-8 py-3 rounded-base font-bold">اشترك الآن (سنوي)</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action / WhatsApp Section -->
+    <section id="contact" class="bg-primary py-20 md:py-24 text-center">
+        <div class="container mx-auto px-4 animate-fadeIn delay-100">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">
+                لسه مش واثق؟
+            </h2>
+            <p class="text-lg md:text-xl text-white mb-10">
+                ابعتلنا على واتساب وهنشرحلك في دقيقة
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <a href="https://wa.me/+201515365474" target="_blank" class="btn-fancy bg-white text-primary text-lg inline-flex items-center">
+                    <i class="fab fa-whatsapp text-2xl ml-3"></i> تواصل معنا عبر واتساب
+                </a>
+                <a href="tel:+201515365474" class="btn-fancy bg-white text-primary text-lg inline-flex items-center">
+                    <i class="fas fa-phone-alt text-xl ml-3"></i> اتصل بنا الآن
+                </a>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <a href="#pricing" class="btn-fancy bg-white text-primary text-lg inline-flex items-center">
+                    <i class="fas fa-tags text-xl ml-3"></i> عروض خاصة
+                </a>
+                <a href="#how-to-subscribe" class="btn-fancy bg-white text-primary text-lg inline-flex items-center">
+                    <i class="fas fa-user-plus text-xl ml-3"></i> سجل الآن
+                </a>
+            </div>
+            <p class="text-lg md:text-xl text-white mt-6">
+                أو اتصل بنا على: <span class="font-bold">01515365474</span> (للدعم الفني)
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-text-primary py-8">
+        <div class="container mx-auto px-8 flex flex-col md:flex-row justify-between items-center text-center md:text-right">
+            <p class="text-text-muted mb-4 md:mb-0 mr-8">
+                &copy; 2025 دفتر الإلكتروني. جميع الحقوق محفوظة.
+            </p>
+            <div class="flex space-x-6 space-x-reverse ml-8">
+                <a href="#" class="text-text-muted hover:text-primary transition-base text-xl">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="text-text-muted hover:text-primary transition-base text-xl">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="text-text-muted hover:text-primary transition-base text-xl">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="text-text-muted hover:text-primary transition-base text-xl">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="fixed bottom-6 left-6 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 transition-opacity duration-300 hover:bg-primary-dark">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Optional: Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Countdown Timer for Special Offer
+        function updateCountdown() {
+            const now = new Date();
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999);
+
+            const timeLeft = endOfDay - now;
+
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopButton.style.opacity = '1';
+            } else {
+                backToTopButton.style.opacity = '0';
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

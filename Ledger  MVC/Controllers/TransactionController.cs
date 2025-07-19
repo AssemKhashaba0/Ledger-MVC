@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Ledger__MVC.Data;
 using Ledger__MVC.Models;
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using System.Security.Claims;
 
 namespace Ledger__MVC.Controllers
 {
-    [Authorize(Roles = nameof(UserRole.User))]
     public class TransactionController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -26,7 +25,7 @@ namespace Ledger__MVC.Controllers
             _logger = logger;
         }
 
-        // دالة مساعدة لاستخراج الاسم العربي من enum
+        // Helper method to get enum display name
         public static string GetEnumDisplayName(TransactionType type)
         {
             var fieldInfo = type.GetType().GetField(type.ToString());
@@ -34,7 +33,7 @@ namespace Ledger__MVC.Controllers
             return displayAttribute?.Name ?? type.ToString();
         }
 
-        // نموذج عرض المعاملات
+        // ViewModel for displaying transactions
         public class TransactionViewModel
         {
             public int Id { get; set; }
@@ -47,7 +46,7 @@ namespace Ledger__MVC.Controllers
             public string Notes { get; set; }
         }
 
-        // نموذج إضافة/تعديل معاملة
+        // ViewModel for creating/updating transactions
         public class CreateUpdateTransactionViewModel
         {
             [Required(ErrorMessage = "العميل مطلوب")]
@@ -65,9 +64,25 @@ namespace Ledger__MVC.Controllers
             public DateTime Date { get; set; }
 
             public string Notes { get; set; }
+            public List<ClientSelectViewModel> Clients { get; set; } = new List<ClientSelectViewModel>();
+            public List<TransactionTypeViewModel> TransactionTypes { get; set; } = new List<TransactionTypeViewModel>();
         }
 
-        // نموذج ملخص المعاملات
+        // ViewModel for client selection
+        public class ClientSelectViewModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        // ViewModel for transaction types
+        public class TransactionTypeViewModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        // ViewModel for transaction summary
         public class TransactionSummaryViewModel
         {
             public int ClientId { get; set; }
@@ -81,6 +96,7 @@ namespace Ledger__MVC.Controllers
 
         // GET: /Transaction/Index
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Index(int? clientId)
         {
             try
@@ -88,7 +104,7 @@ namespace Ledger__MVC.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    _logger.LogWarning("فشل استخراج معرف المستخدم من التوكن.");
+                    _logger.LogWarning("Failed to extract user ID from token.");
                     TempData["Error"] = "المستخدم غير مصرح له";
                     return RedirectToAction("Index", "Home");
                 }
@@ -97,14 +113,14 @@ namespace Ledger__MVC.Controllers
                     .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
                 if (user == null)
                 {
-                    _logger.LogWarning("المستخدم غير موجود. UserId: {UserId}", userId);
+                    _logger.LogWarning("User not found. UserId: {UserId}", userId);
                     TempData["Error"] = "المستخدم غير موجود";
                     return RedirectToAction("Index", "Home");
                 }
 
                 if (!user.IsActive || user.SubscriptionEndDate < DateTime.Now)
                 {
-                    _logger.LogWarning("اشتراك المستخدم منتهي أو الحساب غير نشط. UserId: {UserId}, IsActive: {IsActive}, SubscriptionEndDate: {EndDate}",
+                    _logger.LogWarning("User subscription expired or account inactive. UserId: {UserId}, IsActive: {IsActive}, SubscriptionEndDate: {EndDate}",
                         userId, user.IsActive, user.SubscriptionEndDate);
                     TempData["Error"] = "انتهى اشتراكك، برجاء التجديد";
                     return RedirectToAction("Index", "Home");
@@ -121,7 +137,7 @@ namespace Ledger__MVC.Controllers
                         .AnyAsync(c => c.Id == clientId.Value && c.ApplicationUserId == userId);
                     if (!clientExists)
                     {
-                        _logger.LogWarning("العميل غير موجود أو لا ينتمي للمستخدم. ClientId: {ClientId}, UserId: {UserId}", clientId, userId);
+                        _logger.LogWarning("Client not found or does not belong to user. ClientId: {ClientId}, UserId: {UserId}", clientId, userId);
                         TempData["Error"] = "العميل غير موجود";
                         return RedirectToAction(nameof(Index));
                     }
@@ -137,33 +153,35 @@ namespace Ledger__MVC.Controllers
                         Type = t.Type,
                         Amount = t.Amount,
                         Date = t.Date,
-                        Notes = t.Notes
+                        Notes = t.Notes ?? "-"
                     })
                     .OrderByDescending(t => t.Date)
                     .ToListAsync();
 
                 ViewData["Clients"] = await _context.Clients
                     .Where(c => c.ApplicationUserId == userId)
-                    .Select(c => new { c.Id, c.Name })
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
 
-                return View(transactions);
+                return View(new { Transactions = transactions, ClientId = clientId });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ أثناء استرجاع المعاملات. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                _logger.LogError(ex, "Error retrieving transactions. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 TempData["Error"] = "حدث خطأ غير متوقع";
-                return View(new List<TransactionViewModel>());
+                return View(new { Transactions = new List<TransactionViewModel>(), ClientId = clientId });
             }
         }
 
         // GET: /Transaction/Create
         [HttpGet]
-        public async Task<IActionResult> Create()
+        [Authorize]
+        public async Task<IActionResult> Create(int? clientId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
+                _logger.LogWarning("Failed to extract user ID from token.");
                 TempData["Error"] = "المستخدم غير مصرح له";
                 return RedirectToAction("Index", "Home");
             }
@@ -172,38 +190,50 @@ namespace Ledger__MVC.Controllers
                 .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
             if (user == null || !user.IsActive || user.SubscriptionEndDate < DateTime.Now)
             {
+                _logger.LogWarning("User not found, inactive, or subscription expired. UserId: {UserId}", userId);
                 TempData["Error"] = user == null ? "المستخدم غير موجود" : "انتهى اشتراكك، برجاء التجديد";
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewData["Clients"] = await _context.Clients
-                .Where(c => c.ApplicationUserId == userId)
-                .Select(c => new { c.Id, c.Name })
-                .ToListAsync();
+            var model = new CreateUpdateTransactionViewModel
+            {
+                Date = DateTime.Now,
+                ClientId = clientId ?? 0,
+                Clients = await _context.Clients
+                    .Where(c => c.ApplicationUserId == userId)
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
+                    .ToListAsync(),
+                TransactionTypes = Enum.GetValues(typeof(TransactionType))
+                    .Cast<TransactionType>()
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .ToList()
+            };
 
-            ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
-                .Cast<TransactionType>()
-                .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
-                .ToList();
-
-            return View(new CreateUpdateTransactionViewModel { Date = DateTime.Now });
+            return View(model);
         }
 
         // POST: /Transaction/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create(CreateUpdateTransactionViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Clients"] = await _context.Clients
-                    .Where(c => c.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
-                    .Select(c => new { c.Id, c.Name })
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                model.Clients = await _context.Clients
+                    .Where(c => c.ApplicationUserId == userId)
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
-                ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
+                model.TransactionTypes = Enum.GetValues(typeof(TransactionType))
                     .Cast<TransactionType>()
-                    .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
                     .ToList();
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "بيانات الإدخال غير صحيحة" });
+                }
                 return View(model);
             }
 
@@ -212,6 +242,11 @@ namespace Ledger__MVC.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
+                    _logger.LogWarning("Failed to extract user ID from token.");
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = "المستخدم غير مصرح له" });
+                    }
                     TempData["Error"] = "المستخدم غير مصرح له";
                     return RedirectToAction("Index", "Home");
                 }
@@ -220,12 +255,22 @@ namespace Ledger__MVC.Controllers
                     .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
                 if (user == null)
                 {
+                    _logger.LogWarning("User not found. UserId: {UserId}", userId);
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = "المستخدم غير موجود" });
+                    }
                     TempData["Error"] = "المستخدم غير موجود";
                     return RedirectToAction("Index", "Home");
                 }
 
                 if (!user.IsActive || user.SubscriptionEndDate < DateTime.Now)
                 {
+                    _logger.LogWarning("User subscription expired or account inactive. UserId: {UserId}", userId);
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = "انتهى اشتراكك، برجاء التجديد" });
+                    }
                     TempData["Error"] = "انتهى اشتراكك، برجاء التجديد";
                     return RedirectToAction("Index", "Home");
                 }
@@ -234,6 +279,11 @@ namespace Ledger__MVC.Controllers
                     .FirstOrDefaultAsync(c => c.Id == model.ClientId && c.ApplicationUserId == userId);
                 if (client == null)
                 {
+                    _logger.LogWarning("Client not found. ClientId: {ClientId}, UserId: {UserId}", model.ClientId, userId);
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = "العميل غير موجود" });
+                    }
                     TempData["Error"] = "العميل غير موجود";
                     return RedirectToAction(nameof(Index));
                 }
@@ -250,41 +300,48 @@ namespace Ledger__MVC.Controllers
 
                 _context.FinancialTransactions.Add(transaction);
 
-                var auditLog = new AuditLog
+                _context.AuditLogs.Add(new AuditLog
                 {
                     ApplicationUserId = userId,
                     Action = "إضافة معاملة مالية",
                     Details = $"تم إضافة معاملة {GetEnumDisplayName(model.Type)} بقيمة {model.Amount} للعميل {client.Name} بواسطة المستخدم {user.Email}",
                     Timestamp = DateTime.Now
-                };
-                _context.AuditLogs.Add(auditLog);
+                });
 
-                var notification = new Notification
+                _context.Notifications.Add(new Notification
                 {
                     ApplicationUserId = userId,
                     Title = "تم إضافة معاملة جديدة",
                     Message = $"تم إضافة معاملة {GetEnumDisplayName(model.Type)} بقيمة {model.Amount} للعميل {client.Name}",
                     CreatedAt = DateTime.Now,
                     IsRead = false
-                };
-                _context.Notifications.Add(notification);
+                });
 
                 await _context.SaveChangesAsync();
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "تم إضافة المعاملة بنجاح" });
+                }
 
                 TempData["Success"] = "تم إضافة المعاملة بنجاح";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ أثناء إضافة المعاملة. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                _logger.LogError(ex, "Error creating transaction. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
+                }
                 TempData["Error"] = "حدث خطأ غير متوقع";
-                ViewData["Clients"] = await _context.Clients
+                model.Clients = await _context.Clients
                     .Where(c => c.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
-                    .Select(c => new { c.Id, c.Name })
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
-                ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
+                model.TransactionTypes = Enum.GetValues(typeof(TransactionType))
                     .Cast<TransactionType>()
-                    .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
                     .ToList();
                 return View(model);
             }
@@ -292,11 +349,13 @@ namespace Ledger__MVC.Controllers
 
         // GET: /Transaction/Update/{id}
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Update(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
+                _logger.LogWarning("Failed to extract user ID from token.");
                 TempData["Error"] = "المستخدم غير مصرح له";
                 return RedirectToAction("Index", "Home");
             }
@@ -307,6 +366,7 @@ namespace Ledger__MVC.Controllers
 
             if (transaction == null)
             {
+                _logger.LogWarning("Transaction not found or does not belong to user. TransactionId: {TransactionId}, UserId: {UserId}", id, userId);
                 TempData["Error"] = "المعاملة غير موجودة أو لا تخصك";
                 return RedirectToAction(nameof(Index));
             }
@@ -317,17 +377,16 @@ namespace Ledger__MVC.Controllers
                 Type = transaction.Type,
                 Amount = transaction.Amount,
                 Date = transaction.Date,
-                Notes = transaction.Notes
+                Notes = transaction.Notes,
+                Clients = await _context.Clients
+                    .Where(c => c.ApplicationUserId == userId)
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
+                    .ToListAsync(),
+                TransactionTypes = Enum.GetValues(typeof(TransactionType))
+                    .Cast<TransactionType>()
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .ToList()
             };
-
-            ViewData["Clients"] = await _context.Clients
-                .Where(c => c.ApplicationUserId == userId)
-                .Select(c => new { c.Id, c.Name })
-                .ToListAsync();
-            ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
-                .Cast<TransactionType>()
-                .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
-                .ToList();
 
             return View(model);
         }
@@ -335,17 +394,19 @@ namespace Ledger__MVC.Controllers
         // POST: /Transaction/Update/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Update(int id, CreateUpdateTransactionViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Clients"] = await _context.Clients
-                    .Where(c => c.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
-                    .Select(c => new { c.Id, c.Name })
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                model.Clients = await _context.Clients
+                    .Where(c => c.ApplicationUserId == userId)
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
-                ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
+                model.TransactionTypes = Enum.GetValues(typeof(TransactionType))
                     .Cast<TransactionType>()
-                    .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
                     .ToList();
                 return View(model);
             }
@@ -355,6 +416,7 @@ namespace Ledger__MVC.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
+                    _logger.LogWarning("Failed to extract user ID from token.");
                     TempData["Error"] = "المستخدم غير مصرح له";
                     return RedirectToAction("Index", "Home");
                 }
@@ -365,6 +427,7 @@ namespace Ledger__MVC.Controllers
 
                 if (transaction == null)
                 {
+                    _logger.LogWarning("Transaction not found or does not belong to user. TransactionId: {TransactionId}, UserId: {UserId}", id, userId);
                     TempData["Error"] = "المعاملة غير موجودة أو لا تخصك";
                     return RedirectToAction(nameof(Index));
                 }
@@ -373,6 +436,7 @@ namespace Ledger__MVC.Controllers
                     .FirstOrDefaultAsync(c => c.Id == model.ClientId && c.ApplicationUserId == userId);
                 if (client == null)
                 {
+                    _logger.LogWarning("Client not found. ClientId: {ClientId}, UserId: {UserId}", model.ClientId, userId);
                     TempData["Error"] = "العميل غير موجود";
                     return RedirectToAction(nameof(Index));
                 }
@@ -398,58 +462,24 @@ namespace Ledger__MVC.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ أثناء تعديل المعاملة. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                _logger.LogError(ex, "Error updating transaction. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 TempData["Error"] = "حدث خطأ غير متوقع";
-                ViewData["Clients"] = await _context.Clients
+                model.Clients = await _context.Clients
                     .Where(c => c.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
-                    .Select(c => new { c.Id, c.Name })
+                    .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
-                ViewData["TransactionTypes"] = Enum.GetValues(typeof(TransactionType))
+                model.TransactionTypes = Enum.GetValues(typeof(TransactionType))
                     .Cast<TransactionType>()
-                    .Select(t => new { Id = (int)t, Name = GetEnumDisplayName(t) })
+                    .Select(t => new TransactionTypeViewModel { Id = (int)t, Name = GetEnumDisplayName(t) })
                     .ToList();
                 return View(model);
             }
         }
 
-        // GET: /Transaction/Delete/{id}
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                TempData["Error"] = "المستخدم غير مصرح له";
-                return RedirectToAction("Index", "Home");
-            }
-
-            var transaction = await _context.FinancialTransactions
-                .Include(t => t.Client)
-                .FirstOrDefaultAsync(t => t.Id == id && t.ApplicationUserId == userId);
-
-            if (transaction == null)
-            {
-                TempData["Error"] = "المعاملة غير موجودة أو لا تخصك";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var model = new TransactionViewModel
-            {
-                Id = transaction.Id,
-                ClientId = transaction.ClientId,
-                ClientName = transaction.Client.Name,
-                Type = transaction.Type,
-                Amount = transaction.Amount,
-                Date = transaction.Date,
-                Notes = transaction.Notes
-            };
-
-            return View(model);
-        }
-
         // POST: /Transaction/DeleteConfirmed/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
@@ -457,8 +487,7 @@ namespace Ledger__MVC.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    TempData["Error"] = "المستخدم غير مصرح له";
-                    return RedirectToAction("Index", "Home");
+                    return Json(new { success = false, message = "المستخدم غير مصرح له" });
                 }
 
                 var transaction = await _context.FinancialTransactions
@@ -467,8 +496,7 @@ namespace Ledger__MVC.Controllers
 
                 if (transaction == null)
                 {
-                    TempData["Error"] = "المعاملة غير موجودة أو لا تخصك";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "المعاملة غير موجودة أو لا تخصك" });
                 }
 
                 _context.FinancialTransactions.Remove(transaction);
@@ -483,19 +511,19 @@ namespace Ledger__MVC.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "تم حذف المعاملة بنجاح";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, message = "تم حذف المعاملة بنجاح" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ أثناء حذف المعاملة. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                TempData["Error"] = "حدث خطأ غير متوقع";
-                return RedirectToAction(nameof(Index));
+                _logger.LogError(ex, "Error deleting transaction. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
         }
 
         // GET: /Transaction/Summary
+        // GET: /Transaction/Summary
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Summary()
         {
             try
@@ -503,6 +531,7 @@ namespace Ledger__MVC.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
+                    _logger.LogWarning("Failed to extract user ID from token.");
                     TempData["Error"] = "المستخدم غير مصرح له";
                     return RedirectToAction("Index", "Home");
                 }
@@ -511,75 +540,80 @@ namespace Ledger__MVC.Controllers
                     .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
                 if (user == null)
                 {
+                    _logger.LogWarning("User not found. UserId: {UserId}", userId);
                     TempData["Error"] = "المستخدم غير موجود";
                     return RedirectToAction("Index", "Home");
                 }
 
                 if (!user.IsActive || user.SubscriptionEndDate < DateTime.Now)
                 {
+                    _logger.LogWarning("User subscription expired or account inactive. UserId: {UserId}", userId);
                     TempData["Error"] = "انتهى اشتراكك، برجاء التجديد";
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Fetch all transactions for the user
                 var transactions = await _context.FinancialTransactions
                     .Where(t => t.ApplicationUserId == userId)
                     .Include(t => t.Client)
-                    .OrderByDescending(t => t.Date)
                     .ToListAsync();
 
-                var clientSummaries = transactions
-                    .GroupBy(t => t.ClientId)
-                    .Select(g =>
-                    {
-                        var client = g.First().Client;
-                        var credit = g.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
-                        var debit = g.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
-                        return new TransactionSummaryViewModel
-                        {
-                            ClientId = client.Id,
-                            ClientName = client.Name,
-                            TotalCredit = credit,
-                            TotalDebit = debit,
-                            NetBalance = credit - debit,
-                            Status = credit - debit > 0 ? "ليه فلوس" : credit - debit < 0 ? "عليه فلوس" : "متسوي",
-                            Transactions = g.Select(t => new TransactionViewModel
-                            {
-                                Id = t.Id,
-                                ClientId = t.ClientId,
-                                ClientName = t.Client.Name,
-                                Type = t.Type,
-                                Amount = t.Amount,
-                                Date = t.Date,
-                                Notes = t.Notes
-                            }).ToList()
-                        };
-                    })
-                    .ToList();
-
+                // Calculate totals
                 var totalCredit = transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
                 var totalDebit = transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
-                var balance = totalCredit - totalDebit;
-                var overallStatus = balance > 0 ? "ليك فلوس بره" : balance < 0 ? "عليك فلوس لناس" : "متساويين";
+                var netBalance = totalCredit - totalDebit;
 
-                ViewData["OverallSummary"] = new { TotalCredit = totalCredit, TotalDebit = totalDebit, Net = balance, Status = overallStatus };
+                // Determine financial status and action-oriented message
+                string status, actionMessage;
+                if (netBalance < 0)
+                {
+                    status = "ليك فلوس بره! ";
+                    actionMessage = $"لديك رصيد إيجابي بقيمة {netBalance}. تواصل مع عملائك لتحصيل المستحقات وتعزيز أرباحك!";
+                }
+                else if (netBalance > 0)
+                {
+                    status = "عليك مستحقات! ⚠️";
+                    actionMessage = $"لديك مستحقات بقيمة {-netBalance}. راجع معاملاتك وقم بتسوية الحسابات لتحسين وضعك المالي.";
+                }
+                else
+                {
+                    status = "حساباتك متساوية! ✅";
+                    actionMessage = "أنت في المسار الصحيح! استمر في إدارة معاملاتك بكفاءة للحفاظ على التوازن.";
+                }
 
-                return View(clientSummaries);
+                // Prepare the summary view model
+                var summary = new
+                {
+                    TotalCredit = totalCredit,
+                    TotalDebit = totalDebit,
+                    NetBalance = netBalance,
+                    Status = status,
+                    ActionMessage = actionMessage,
+                    ClientCount = await _context.Clients.CountAsync(c => c.ApplicationUserId == userId),
+                    TransactionCount = transactions.Count
+                };
+
+                // Pass the summary to the view
+                ViewData["FinancialSummary"] = summary;
+
+                return View();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ أثناء استرجاع ملخص المعاملات. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                TempData["Error"] = "حدث خطأ غير متوقع";
-                return View(new List<TransactionSummaryViewModel>());
+                _logger.LogError(ex, "Error retrieving financial summary. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                TempData["Error"] = "حدث خطأ غير متوقع، حاول لاحقًا";
+                return View();
             }
         }
-
         // GET: /Transaction/Details/{id}
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
+                _logger.LogWarning("Failed to extract user ID from token.");
                 TempData["Error"] = "المستخدم غير مصرح له";
                 return RedirectToAction("Index", "Home");
             }
@@ -590,6 +624,7 @@ namespace Ledger__MVC.Controllers
 
             if (transaction == null)
             {
+                _logger.LogWarning("Transaction not found or does not belong to user. TransactionId: {TransactionId}, UserId: {UserId}", id, userId);
                 TempData["Error"] = "المعاملة غير موجودة أو لا تخصك";
                 return RedirectToAction(nameof(Index));
             }
@@ -602,10 +637,11 @@ namespace Ledger__MVC.Controllers
                 Type = transaction.Type,
                 Amount = transaction.Amount,
                 Date = transaction.Date,
-                Notes = transaction.Notes
+                Notes = transaction.Notes ?? "-"
             };
 
             return View(model);
         }
     }
+  
 }

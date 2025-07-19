@@ -1,26 +1,150 @@
 ﻿@model Ledger__MVC.Controllers.AuthController.LoginViewModel
 @{
     ViewData["Title"] = "تسجيل الدخول";
+    Layout = null;
 }
-<h2>تسجيل الدخول</h2>
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="All" class="text-danger"></div>
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <input asp-for="RememberMe" />
-        <label asp-for="RememberMe"></label>
-    </div>
-    <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
-</form>
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* خط عام مناسب */
+        background-color: var(--bg-secondary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        direction: rtl; /* لجعل النص يبدأ من اليمين لليسار */
+        text-align: right; /* لمحاذاة النص لليمين */
+    }
+
+    .login-container {
+        background-color: var(--bg-card);
+        padding: 30px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 400px;
+        box-sizing: border-box; /* لضمان أن التعبئة لا تزيد عن العرض */
+    }
+
+    h2 {
+        color: var(--primary-dark);
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2em;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-sizing: border-box;
+        font-size: 1em;
+        color: var(--text-primary);
+        background-color: var(--bg-primary);
+        transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* ظل خفيف عند التركيز */
+        }
+
+    .text-danger {
+        color: var(--danger);
+        font-size: 0.875em;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .form-group input[type="checkbox"] {
+        margin-left: 10px; /* مسافة بين مربع الاختيار والنص */
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 12px 20px;
+        border: none;
+        border-radius: var(--radius);
+        background-color: var(--primary);
+        color: white;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color var(--transition), transform var(--transition), box-shadow var(--transition);
+        margin-top: 25px;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px); /* تأثير رفع خفيف */
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow);
+    }
+</style>
+
+<div class="login-container">
+    <h2>تسجيل الدخول</h2>
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Email">ايميل</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Password">باسورد</label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center;">
+            <input type="checkbox" asp-for="RememberMe" id="rememberMe" />
+            <label asp-for="RememberMe" for="rememberMe" style="margin-bottom: 0; cursor: pointer;"></label>
+        </div>
+        <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+    </form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

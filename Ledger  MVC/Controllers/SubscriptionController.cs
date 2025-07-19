@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
@@ -14,24 +13,36 @@ using Ledger__MVC.Models;
 
 namespace Ledger__MVC.Controllers
 {
-    [Authorize(Roles = nameof(UserRole.Admin))]
     public class SubscriptionController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<SubscriptionController> _logger;
 
         public SubscriptionController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ILogger<SubscriptionController> logger)
         {
             _context = context;
             _userManager = userManager;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
-        // نموذج عرض قائمة المستخدمين
+        // ViewModel for Index
+        public class SubscriptionIndexViewModel
+        {
+            public List<UserListViewModel> Users { get; set; }
+            public List<SubscriptionTypeViewModel> SubscriptionTypes { get; set; }
+            public string CurrentSearch { get; set; }
+            public string CurrentIsActive { get; set; }
+            public string CurrentSubscriptionType { get; set; }
+        }
+
+        // ViewModel for User List
         public class UserListViewModel
         {
             public string Id { get; set; }
@@ -43,9 +54,17 @@ namespace Ledger__MVC.Controllers
             public int ClientCount { get; set; }
             public int TransactionCount { get; set; }
             public DateTime LastSeen { get; set; }
+            public int RemainingDays { get; set; }
         }
 
-        // نموذج تعديل الاشتراك
+        // ViewModel for Subscription Types
+        public class SubscriptionTypeViewModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        // ViewModel for Update Subscription
         public class UpdateSubscriptionViewModel
         {
             [Required(ErrorMessage = "نوع الاشتراك مطلوب")]
@@ -58,9 +77,13 @@ namespace Ledger__MVC.Controllers
             [Required(ErrorMessage = "السعر مطلوب")]
             [Range(0, double.MaxValue, ErrorMessage = "السعر يجب أن يكون أكبر من أو يساوي 0")]
             public decimal Price { get; set; }
+
+            public List<SubscriptionTypeViewModel> SubscriptionTypes { get; set; }
+            public string UserId { get; set; }
+            public string FullName { get; set; }
         }
 
-        // نموذج تجديد الاشتراك
+        // ViewModel for Renew Subscription
         public class RenewSubscriptionViewModel
         {
             [Required(ErrorMessage = "نوع الاشتراك مطلوب")]
@@ -70,15 +93,14 @@ namespace Ledger__MVC.Controllers
             [DataType(DataType.Date)]
             public DateTime SubscriptionStartDate { get; set; }
 
-            [Required(ErrorMessage = "تاريخ الانتهاء مطلوب")]
-            [DataType(DataType.Date)]
-            public DateTime SubscriptionEndDate { get; set; }
-
             [Required(ErrorMessage = "السعر مطلوب")]
             [Range(0, double.MaxValue, ErrorMessage = "السعر يجب أن يكون أكبر من أو يساوي 0")]
             public decimal Price { get; set; }
 
             public string PaymentNote { get; set; }
+            public List<SubscriptionTypeViewModel> SubscriptionTypes { get; set; }
+            public string UserId { get; set; }
+            public string FullName { get; set; }
         }
 
         // GET: /Subscription/Index
@@ -96,10 +118,14 @@ namespace Ledger__MVC.Controllers
                         PhoneNumber = u.PhoneNumber,
                         SubscriptionType = u.SubscriptionType,
                         SubscriptionEndDate = u.SubscriptionEndDate,
-                        Status = u.IsActive && u.SubscriptionEndDate >= DateTime.Now ? "نشط" : "منتهي",
+                        Status = !u.IsActive ? "محظور" :
+                                 u.SubscriptionEndDate >= DateTime.Now ? "نشط" : "منتهي",
                         ClientCount = u.Clients.Count,
-                        TransactionCount = u.FinancialTransactions.Count
-                        //LastSeen = u.LastSeen,
+                        TransactionCount = u.FinancialTransactions.Count,
+                        LastSeen = u.LastSeen ?? DateTime.MinValue,
+                        RemainingDays = !u.IsActive ? 0 :
+                                        u.SubscriptionEndDate >= DateTime.Now ?
+                                        (u.SubscriptionEndDate - DateTime.Now).Days : 0
                     });
 
                 if (!string.IsNullOrEmpty(search))
@@ -109,7 +135,7 @@ namespace Ledger__MVC.Controllers
 
                 if (isActive.HasValue)
                 {
-                    query = query.Where(u => u.Status == (isActive.Value ? "نشط" : "منتهي"));
+                    query = query.Where(u => isActive.Value ? u.Status == "نشط" : u.Status == "منتهي");
                 }
 
                 if (subscriptionType.HasValue)
@@ -117,18 +143,43 @@ namespace Ledger__MVC.Controllers
                     query = query.Where(u => u.SubscriptionType == subscriptionType.Value);
                 }
 
-                var users = await query.ToListAsync();
-                ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                    .Cast<SubscriptionType>()
-                    .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                    .ToList();
+                var model = new SubscriptionIndexViewModel
+                {
+                    Users = await query.ToListAsync(),
+                    SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                        .Cast<SubscriptionType>()
+                        .Select(e => new SubscriptionTypeViewModel
+                        {
+                            Id = (int)e,
+                            Name = e.GetDisplayName()
+                        })
+                        .ToList(),
+                    CurrentSearch = search,
+                    CurrentIsActive = isActive?.ToString(),
+                    CurrentSubscriptionType = subscriptionType?.ToString()
+                };
 
-                return View(users);
+                return View(model);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error in Index action: {Message}", ex.Message);
                 TempData["Error"] = $"حدث خطأ غير متوقع: {ex.Message}";
-                return View(new List<UserListViewModel>());
+                return View(new SubscriptionIndexViewModel
+                {
+                    Users = new List<UserListViewModel>(),
+                    SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                        .Cast<SubscriptionType>()
+                        .Select(e => new SubscriptionTypeViewModel
+                        {
+                            Id = (int)e,
+                            Name = e.GetDisplayName()
+                        })
+                        .ToList(),
+                    CurrentSearch = search,
+                    CurrentIsActive = isActive?.ToString(),
+                    CurrentSubscriptionType = subscriptionType?.ToString()
+                });
             }
         }
 
@@ -149,16 +200,19 @@ namespace Ledger__MVC.Controllers
             {
                 SubscriptionType = user.SubscriptionType,
                 SubscriptionStartDate = DateTime.Now,
-                Price = 0
+                Price = 0,
+                SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                    .Cast<SubscriptionType>()
+                    .Select(e => new SubscriptionTypeViewModel
+                    {
+                        Id = (int)e,
+                        Name = e.GetDisplayName()
+                    })
+                    .ToList(),
+                UserId = userId,
+                FullName = user.FullName
             };
 
-            ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                .Cast<SubscriptionType>()
-                .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                .ToList();
-
-            ViewData["UserId"] = userId;
-            ViewData["FullName"] = user.FullName;
             return View(model);
         }
 
@@ -167,12 +221,18 @@ namespace Ledger__MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdatePlan(string userId, UpdateSubscriptionViewModel model)
         {
-            if (!ModelState.IsValid)
+            model.SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                .Cast<SubscriptionType>()
+                .Select(e => new SubscriptionTypeViewModel
+                {
+                    Id = (int)e,
+                    Name = e.GetDisplayName()
+                })
+                .ToList();
+            model.UserId = userId;
+
+            if (ModelState.IsValid)
             {
-                ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                    .Cast<SubscriptionType>()
-                    .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                    .ToList();
                 return View(model);
             }
 
@@ -187,6 +247,8 @@ namespace Ledger__MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                model.FullName = user.FullName;
+
                 if (!user.IsActive)
                 {
                     TempData["Error"] = "لا يمكن تعديل حساب محظور";
@@ -196,10 +258,6 @@ namespace Ledger__MVC.Controllers
                 if (model.SubscriptionType == 0)
                 {
                     ModelState.AddModelError("SubscriptionType", "الرجاء اختيار خطة اشتراك");
-                    ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                        .Cast<SubscriptionType>()
-                        .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                        .ToList();
                     return View(model);
                 }
 
@@ -253,10 +311,6 @@ namespace Ledger__MVC.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"حدث خطأ: {ex.Message}";
-                ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                    .Cast<SubscriptionType>()
-                    .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                    .ToList();
                 return View(model);
             }
         }
@@ -278,18 +332,20 @@ namespace Ledger__MVC.Controllers
             {
                 SubscriptionType = user.SubscriptionType,
                 SubscriptionStartDate = DateTime.Now,
-                SubscriptionEndDate = CalculateSubscriptionEndDate(user.SubscriptionType, DateTime.Now),
                 Price = 0,
-                PaymentNote = "تجديد يدوي بواسطة الأدمن"
+                PaymentNote = "تجديد يدوي بواسطة الأدمن",
+                SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                    .Cast<SubscriptionType>()
+                    .Select(e => new SubscriptionTypeViewModel
+                    {
+                        Id = (int)e,
+                        Name = e.GetDisplayName()
+                    })
+                    .ToList(),
+                UserId = userId,
+                FullName = user.FullName
             };
 
-            ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                .Cast<SubscriptionType>()
-                .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                .ToList();
-
-            ViewData["UserId"] = userId;
-            ViewData["FullName"] = user.FullName;
             return View(model);
         }
 
@@ -298,12 +354,18 @@ namespace Ledger__MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Renew(string userId, RenewSubscriptionViewModel model)
         {
-            if (!ModelState.IsValid)
+            model.SubscriptionTypes = Enum.GetValues(typeof(SubscriptionType))
+                .Cast<SubscriptionType>()
+                .Select(e => new SubscriptionTypeViewModel
+                {
+                    Id = (int)e,
+                    Name = e.GetDisplayName()
+                })
+                .ToList();
+            model.UserId = userId;
+
+            if (ModelState.IsValid)
             {
-                ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                    .Cast<SubscriptionType>()
-                    .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                    .ToList();
                 return View(model);
             }
 
@@ -318,29 +380,24 @@ namespace Ledger__MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                model.FullName = user.FullName;
+
                 if (model.SubscriptionType == 0)
                 {
                     ModelState.AddModelError("SubscriptionType", "الرجاء اختيار خطة اشتراك");
-                    ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                        .Cast<SubscriptionType>()
-                        .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                        .ToList();
                     return View(model);
                 }
 
-                if (model.SubscriptionEndDate <= model.SubscriptionStartDate)
+                var subscriptionEndDate = CalculateSubscriptionEndDate(model.SubscriptionType, model.SubscriptionStartDate);
+                if (subscriptionEndDate <= model.SubscriptionStartDate)
                 {
-                    ModelState.AddModelError("SubscriptionEndDate", "الرجاء تحديد تاريخ انتهاء صالح");
-                    ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                        .Cast<SubscriptionType>()
-                        .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                        .ToList();
+                    ModelState.AddModelError("SubscriptionStartDate", "تاريخ البداية يجب أن ينتج عنه تاريخ انتهاء صالح");
                     return View(model);
                 }
 
                 user.SubscriptionType = model.SubscriptionType;
                 user.SubscriptionStartDate = model.SubscriptionStartDate;
-                user.SubscriptionEndDate = model.SubscriptionEndDate;
+                user.SubscriptionEndDate = subscriptionEndDate;
                 user.IsActive = true;
 
                 var subscriptionHistory = new SubscriptionHistory
@@ -348,7 +405,7 @@ namespace Ledger__MVC.Controllers
                     ApplicationUserId = user.Id,
                     SubscriptionType = model.SubscriptionType,
                     StartDate = model.SubscriptionStartDate,
-                    EndDate = model.SubscriptionEndDate,
+                    EndDate = subscriptionEndDate,
                     Price = model.Price,
                     PaymentNote = model.PaymentNote ?? "تجديد يدوي بواسطة الأدمن"
                 };
@@ -373,7 +430,7 @@ namespace Ledger__MVC.Controllers
                         <ul>
                             <li>نوع الاشتراك: {model.SubscriptionType.GetDisplayName()}</li>
                             <li>تاريخ البداية: {model.SubscriptionStartDate:yyyy-MM-dd}</li>
-                            <li>تاريخ الانتهاء: {model.SubscriptionEndDate:yyyy-MM-dd}</li>
+                            <li>تاريخ الانتهاء: {subscriptionEndDate:yyyy-MM-dd}</li>
                         </ul>";
 
                     await _emailSender.SendEmailAsync(user.Email, "تجديد اشتراكك في Smart Ledger", emailBody);
@@ -389,36 +446,8 @@ namespace Ledger__MVC.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"حدث خطأ: {ex.Message}";
-                ViewData["SubscriptionTypes"] = Enum.GetValues(typeof(SubscriptionType))
-                    .Cast<SubscriptionType>()
-                    .Select(e => new { Id = (int)e, Name = e.GetDisplayName() })
-                    .ToList();
                 return View(model);
             }
-        }
-
-        // GET: /Subscription/Block/{userId}
-        [HttpGet]
-        public async Task<IActionResult> Block(string userId)
-        {
-            var user = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
-
-            if (user == null)
-            {
-                TempData["Error"] = "المستخدم غير موجود";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (!user.IsActive)
-            {
-                TempData["Error"] = "الحساب محظور بالفعل";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewData["UserId"] = userId;
-            ViewData["FullName"] = user.FullName;
-            return View();
         }
 
         // POST: /Subscription/BlockConfirmed/{userId}
@@ -433,14 +462,12 @@ namespace Ledger__MVC.Controllers
 
                 if (user == null)
                 {
-                    TempData["Error"] = "المستخدم غير موجود";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "المستخدم غير موجود" });
                 }
 
                 if (!user.IsActive)
                 {
-                    TempData["Error"] = "الحساب محظور بالفعل";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "الحساب محظور بالفعل" });
                 }
 
                 user.IsActive = false;
@@ -456,38 +483,12 @@ namespace Ledger__MVC.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "تم حظر الحساب بشكل دائم بنجاح";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, message = "تم حظر الحساب بشكل دائم بنجاح" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"حدث خطأ: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
-        }
-
-        // GET: /Subscription/Unblock/{userId}
-        [HttpGet]
-        public async Task<IActionResult> Unblock(string userId)
-        {
-            var user = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
-
-            if (user == null)
-            {
-                TempData["Error"] = "المستخدم غير موجود";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (user.IsActive)
-            {
-                TempData["Error"] = "الحساب نشط بالفعل";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewData["UserId"] = userId;
-            ViewData["FullName"] = user.FullName;
-            return View();
         }
 
         // POST: /Subscription/UnblockConfirmed/{userId}
@@ -502,14 +503,12 @@ namespace Ledger__MVC.Controllers
 
                 if (user == null)
                 {
-                    TempData["Error"] = "المستخدم غير موجود";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "المستخدم غير موجود" });
                 }
 
                 if (user.IsActive)
                 {
-                    TempData["Error"] = "الحساب نشط بالفعل";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "الحساب نشط بالفعل" });
                 }
 
                 user.IsActive = true;
@@ -538,34 +537,70 @@ namespace Ledger__MVC.Controllers
                     // تجاهل فشل إرسال البريد
                 }
 
-                TempData["Success"] = "تم إلغاء حظر الحساب بنجاح";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, message = "تم إلغاء حظر الحساب بنجاح" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"حدث خطأ: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
         }
 
-        // GET: /Subscription/Delete/{userId}
         [HttpGet]
-        public async Task<IActionResult> Delete(string userId)
+        public async Task<IActionResult> Revenues()
         {
-            var user = await _context.ApplicationUsers
-                .Include(u => u.FinancialTransactions)
-                .Include(u => u.Clients)
-                .FirstOrDefaultAsync(u => u.Id == userId && u.Role == UserRole.User);
-
-            if (user == null)
+            try
             {
-                TempData["Error"] = "المستخدم غير موجود";
-                return RedirectToAction(nameof(Index));
-            }
+                var today = DateTime.Today;
+                var startOfMonth = new DateTime(today.Year, today.Month, 1);
+                var startOfYear = new DateTime(today.Year, 1, 1);
 
-            ViewData["UserId"] = userId;
-            ViewData["FullName"] = user.FullName;
-            return View();
+                var model = new RevenueViewModel
+                {
+                    DailyRevenue = await _context.SubscriptionHistories
+                        .Where(s => s.StartDate.Date == today)
+                        .SumAsync(s => s.Price),
+                    MonthlyRevenue = await _context.SubscriptionHistories
+                        .Where(s => s.StartDate >= startOfMonth && s.StartDate <= today)
+                        .SumAsync(s => s.Price),
+                    YearlyRevenue = await _context.SubscriptionHistories
+                        .Where(s => s.StartDate >= startOfYear && s.StartDate <= today)
+                        .SumAsync(s => s.Price),
+                    RevenueDetails = await _context.SubscriptionHistories
+                        .Include(s => s.ApplicationUser)
+                        .Where(s => s.StartDate >= startOfYear)
+                        .Select(s => new RevenueDetailViewModel
+                        {
+                            UserName = s.ApplicationUser.FullName,
+                            SubscriptionType = s.SubscriptionType.GetDisplayName(),
+                            Price = s.Price,
+                            StartDate = s.StartDate
+                        })
+                        .ToListAsync()
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"حدث خطأ أثناء استرجاع الإيرادات: {ex.Message}";
+                return View(new RevenueViewModel());
+            }
+        }
+
+        public class RevenueViewModel
+        {
+            public decimal DailyRevenue { get; set; }
+            public decimal MonthlyRevenue { get; set; }
+            public decimal YearlyRevenue { get; set; }
+            public List<RevenueDetailViewModel> RevenueDetails { get; set; }
+        }
+
+        public class RevenueDetailViewModel
+        {
+            public string UserName { get; set; }
+            public string SubscriptionType { get; set; }
+            public decimal Price { get; set; }
+            public DateTime StartDate { get; set; }
         }
 
         // POST: /Subscription/DeleteConfirmed/{userId}
@@ -582,14 +617,12 @@ namespace Ledger__MVC.Controllers
 
                 if (user == null)
                 {
-                    TempData["Error"] = "المستخدم غير موجود";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "المستخدم غير موجود" });
                 }
 
                 if (user.FinancialTransactions.Any() || user.Clients.Any())
                 {
-                    TempData["Error"] = "لا يمكن حذف الحساب لوجود معاملات أو عملاء مرتبطين";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "لا يمكن حذف الحساب لوجود معاملات أو عملاء مرتبطين" });
                 }
 
                 _context.ApplicationUsers.Remove(user);
@@ -605,13 +638,11 @@ namespace Ledger__MVC.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "تم حذف الحساب بنجاح";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, message = "تم حذف الحساب بنجاح" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"حدث خطأ: {ex.Message}";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
             }
         }
 
@@ -631,7 +662,7 @@ namespace Ledger__MVC.Controllers
             return Json(new { Data = types });
         }
 
-        // دالة لحساب تاريخ انتهاء الاشتراك
+        // Helper function to calculate subscription end date
         private DateTime CalculateSubscriptionEndDate(SubscriptionType subscriptionType, DateTime startDate)
         {
             return subscriptionType switch
@@ -643,9 +674,10 @@ namespace Ledger__MVC.Controllers
                 _ => startDate.AddMonths(1)
             };
         }
+
     }
 
-    // دالة مساعدة للحصول على اسم العرض
+    // Helper class for enum display names
     public static class EnumExtensions
     {
         public static string GetDisplayName(this Enum enumValue)

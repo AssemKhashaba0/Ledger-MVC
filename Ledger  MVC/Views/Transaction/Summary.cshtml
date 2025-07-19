@@ -1,94 +1,743 @@
-﻿@model List<Ledger__MVC.Controllers.TransactionController.TransactionSummaryViewModel>
+﻿@model dynamic
 @{
-    ViewData["Title"] = "ملخص المعاملات";
-    var overallSummary = ViewData["OverallSummary"] as dynamic;
+    var summary = ViewData["FinancialSummary"] as dynamic;
+    var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
 
-<div class="container mt-4">
-    <h2>ملخص المعاملات</h2>
+<style>
+    /* الألوان المحددة */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: 0.3s ease;
+    }
 
-    <!-- Overall Summary -->
-    <div class="card mb-4">
+    /* الخطوط العربية */
+    @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+    body {
+        font-family: 'Cairo', sans-serif;
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, #e0e7ff 100%);
+        color: var(--text-primary);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    /* خلفية متحركة */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23a5b4fc" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%236366f1" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%234f46e5" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="%23a5b4fc" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* حاوية الصفحة */
+    .financial-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* بطاقة الملخص الرئيسية */
+    .summary-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+    }
+
+    .summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(165, 180, 252, 0.02) 100%);
+        pointer-events: none;
+    }
+
+    /* رأس البطاقة */
+    .card-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        animation: float 8s ease-in-out infinite;
+    }
+
+    .card-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,20 Q50,0 100,20 L100,100 L0,100 Z" fill="rgba(255,255,255,0.03)"/></svg>') no-repeat;
+        background-size: cover;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(180deg); }
+    }
+
+    .card-header h1 {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 2;
+        font-weight: 400;
+    }
+
+    /* جسم البطاقة */
+    .card-body {
+        padding: 3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* قسم الحالة */
+    .status-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2.5rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.1) 100%);
+        border-radius: 16px;
+        border: 2px solid rgba(16, 185, 129, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .status-section::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, var(--success), var(--primary), var(--success));
+        border-radius: 18px;
+        z-index: -1;
+        opacity: 0.1;
+    }
+
+    .status-icon {
+        font-size: 4.5rem;
+        color: var(--success);
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+        filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3));
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3)); }
+        50% { transform: scale(1.08); filter: drop-shadow(0 6px 12px rgba(16, 185, 129, 0.4)); }
+        100% { transform: scale(1); filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.3)); }
+    }
+
+    .status-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--success);
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .status-message {
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* الأرقام المالية الرئيسية */
+    .financial-metrics {
+        margin-bottom: 3rem;
+    }
+
+    .metric-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+        transition: all var(--transition);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        transform: scaleX(0);
+        transition: var(--transition);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(165, 180, 252, 0.02) 100%);
+        opacity: 0;
+        transition: var(--transition);
+        border-radius: 16px;
+    }
+
+    .metric-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transform: translateY(-8px);
+        border-color: var(--primary-light);
+    }
+
+    .metric-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .metric-card:hover::after {
+        opacity: 1;
+    }
+
+    .metric-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        display: block;
+        transition: var(--transition);
+    }
+
+    .metric-card:hover .metric-icon {
+        transform: scale(1.1);
+    }
+
+    .metric-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .metric-value {
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin: 0;
+        transition: var(--transition);
+    }
+
+    .metric-card:hover .metric-value {
+        transform: scale(1.05);
+    }
+
+    /* مؤشر الرصيد */
+    .balance-indicator {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        transition: var(--transition);
+    }
+
+    .balance-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .balance-status.positive {
+        color: var(--success);
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .balance-status.negative {
+        color: var(--danger);
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .balance-indicator .balance-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    /* ألوان محددة للمؤشرات */
+    .credit-metric .metric-icon { 
+        color: var(--success); 
+        filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+    }
+    .credit-metric .metric-value { color: var(--success); }
+    .credit-metric:hover::before { background: linear-gradient(90deg, var(--success), #059669); }
+
+    .debit-metric .metric-icon { 
+        color: var(--danger); 
+        filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+    }
+    .debit-metric .metric-value { color: var(--danger); }
+    .debit-metric:hover::before { background: linear-gradient(90deg, var(--danger), #dc2626); }
+
+    .balance-positive .metric-icon { 
+        color: var(--success); 
+        filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+    }
+    .balance-positive .metric-value { color: var(--success); }
+    .balance-positive:hover::before { background: linear-gradient(90deg, var(--success), #059669); }
+    .balance-positive .balance-indicator { 
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); 
+    }
+
+    .balance-negative .metric-icon { 
+        color: var(--danger); 
+        filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+    }
+    .balance-negative .metric-value { color: var(--danger); }
+    .balance-negative:hover::before { background: linear-gradient(90deg, var(--danger), #dc2626); }
+    .balance-negative .balance-indicator { 
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); 
+    }
+
+    /* الأرقام الإضافية */
+    .additional-metrics {
+        margin-bottom: 3rem;
+    }
+
+    .additional-metric {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .additional-metric::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        opacity: 0;
+        transition: var(--transition);
+        border-radius: 16px;
+    }
+
+    .additional-metric:hover::before {
+        opacity: 0.05;
+    }
+
+    .additional-metric:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-light);
+    }
+
+    .additional-metric .metric-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+        transition: var(--transition);
+    }
+
+    .additional-metric:hover .metric-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .additional-metric .metric-title {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .additional-metric .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* أزرار الإجراءات */
+    .action-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 3rem;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1.2rem 2.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all var(--transition);
+        min-width: 220px;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: var(--transition);
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .action-btn i {
+        transition: var(--transition);
+    }
+
+    .action-btn:hover i {
+        transform: scale(1.2);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), #059669);
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669, var(--success));
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* خط فاصل مزخرف */
+    .decorative-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        margin: 4rem 0;
+        position: relative;
+    }
+
+    .decorative-divider::before {
+        content: '◆';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-card);
+        color: var(--primary);
+        padding: 0 1.5rem;
+        font-size: 1.5rem;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        border-radius: 50px;
+    }
+
+    /* تأثيرات إضافية */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -1rem;
+    }
+
+    .col-lg-4, .col-md-6, .col-md-12 {
+        flex: 1;
+        min-width: 300px;
+        padding: 1rem;
+    }
+
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+    }
+
+    .col-md-12 {
+        flex: 0 0 100%;
+    }
+
+    /* تحسينات الأداء */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* التجاوبية */
+    @@media (max-width: 992px) {
+        .col-lg-4 {
+            flex: 0 0 50%;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .financial-container {
+            padding: 1rem;
+        }
+
+        .row {
+            margin: -0.5rem;
+        }
+
+        .col-lg-4, .col-md-6, .col-md-12 {
+            flex: 0 0 100%;
+            min-width: auto;
+            padding: 0.5rem;
+        }
+
+        .card-header h1 {
+            font-size: 2.2rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .status-section {
+            padding: 2rem;
+        }
+
+        .status-icon {
+            font-size: 3.5rem;
+        }
+
+        .status-title {
+            font-size: 1.8rem;
+        }
+
+        .metric-card {
+            padding: 2rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .card-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .card-header .subtitle {
+            font-size: 1rem;
+        }
+        
+        .metric-icon {
+            font-size: 2.8rem;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+        }
+
+        .status-icon {
+            font-size: 3rem;
+        }
+
+        .status-title {
+            font-size: 1.6rem;
+        }
+
+        .metric-card, .additional-metric {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="financial-container">
+    <div class="summary-card">
         <div class="card-header">
-            <h5>الملخص العام</h5>
+            <h1><i class="fas fa-chart-line"></i> الملخص المالي</h1>
+            <div class="subtitle">نظرة شاملة على وضعك المالي الحالي</div>
         </div>
+        
         <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">إجمالي الديون</dt>
-                <dd class="col-sm-9">@overallSummary.TotalCredit.ToString("C")</dd>
-                <dt class="col-sm-3">إجمالي المدفوعات</dt>
-                <dd class="col-sm-9">@overallSummary.TotalDebit.ToString("C")</dd>
-                <dt class="col-sm-3">صافي الرصيد</dt>
-                <dd class="col-sm-9">@overallSummary.Net.ToString("C")</dd>
-                <dt class="col-sm-3">الحالة</dt>
-                <dd class="col-sm-9">@overallSummary.Status</dd>
-            </dl>
+            <!-- قسم الحالة -->
+            <div class="status-section">
+                <div class="status-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="status-title">@summary.Status</div>
+                <p class="status-message">@summary.ActionMessage</p>
+            </div>
+
+            <!-- الأرقام المالية الرئيسية -->
+            <div class="financial-metrics">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="metric-card credit-metric">
+                            <i class="fas fa-arrow-up metric-icon"></i>
+                            <div class="metric-title">إجمالي المستحقات (ليك)</div>
+                            <p class="metric-value">@summary.TotalCredit.ToString("C2", egyptianCulture)</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="metric-card debit-metric">
+                            <i class="fas fa-arrow-down metric-icon"></i>
+                            <div class="metric-title">إجمالي المدفوعات (عليك)</div>
+                            <p class="metric-value">@summary.TotalDebit.ToString("C2", egyptianCulture)</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="metric-card @(summary.NetBalance >= 0 ? "balance-positive" : "balance-negative")">
+                            <i class="fas @(summary.NetBalance >= 0 ? "fa-hand-holding-usd" : "fa-hand-point-up") metric-icon"></i>
+                            <div class="metric-title">صافي الرصيد @(summary.NetBalance >= 0 ? "(ليك)" : "(عليك)")</div>
+                            <p class="metric-value">@Math.Abs(summary.NetBalance).ToString("C2", egyptianCulture)</p>
+                            <div class="balance-indicator">
+                                @if (summary.NetBalance >= 0)
+                                {
+                                    <span class="balance-status positive"><i class="fas fa-arrow-up"></i> مستحق ليك</span>
+                                }
+                                else
+                                {
+                                    <span class="balance-status negative"><i class="fas fa-arrow-down"></i> مستحق عليك</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- خط فاصل مزخرف -->
+            <div class="decorative-divider"></div>
+
+            <!-- الأرقام الإضافية -->
+            <div class="additional-metrics">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="additional-metric">
+                            <i class="fas fa-users metric-icon"></i>
+                            <div class="metric-title">عدد العملاء</div>
+                            <p class="metric-value">@summary.ClientCount</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="additional-metric">
+                            <i class="fas fa-exchange-alt metric-icon"></i>
+                            <div class="metric-title">عدد المعاملات</div>
+                            <p class="metric-value">@summary.TransactionCount</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أزرار الإجراءات -->
+            <div class="action-buttons">
+                <a href="@Url.Action("Index", "Transaction")" class="action-btn btn-primary">
+                    <i class="fas fa-list"></i>
+                    عرض التفاصيل
+                </a>
+                <a href="@Url.Action("Create", "Transaction")" class="action-btn btn-success">
+                    <i class="fas fa-plus"></i>
+                    إضافة معاملة جديدة
+                </a>
+            </div>
         </div>
     </div>
-
-    <!-- Client Summaries -->
-    @foreach (var summary in Model)
-    {
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5>العميل: @summary.ClientName</h5>
-            </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-3">إجمالي الديون</dt>
-                    <dd class="col-sm-9">@summary.TotalCredit.ToString("C")</dd>
-                    <dt class="col-sm-3">إجمالي المدفوعات</dt>
-                    <dd class="col-sm-9">@summary.TotalDebit.ToString("C")</dd>
-                    <dt class="col-sm-3">صافي الرصيد</dt>
-                    <dd class="col-sm-9">@summary.NetBalance.ToString("C")</dd>
-                    <dt class="col-sm-3">الحالة</dt>
-                    <dd class="col-sm-9">@summary.Status</dd>
-                </dl>
-                <h6>المعاملات</h6>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>نوع المعاملة</th>
-                            <th>المبلغ</th>
-                            <th>التاريخ</th>
-                            <th>ملاحظات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var transaction in summary.Transactions)
-                        {
-                            <tr>
-                                <td>@transaction.TypeDisplayName</td>
-                                <td>@transaction.Amount.ToString("C")</td>
-                                <td>@transaction.Date.ToString("yyyy-MM-dd")</td>
-                                <td>@(string.IsNullOrEmpty(transaction.Notes) ? "-" : transaction.Notes)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-
-    <a asp-action="Index" class="btn btn-secondary">رجوع</a>
-
-    <!-- Success/Error Messages -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-            @TempData["Success"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">×</span>
-            </button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">×</span>
-            </button>
-        </div>
-    }
 </div>
