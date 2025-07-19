@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace Ledger__MVC.Controllers
 {
-    //[Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;

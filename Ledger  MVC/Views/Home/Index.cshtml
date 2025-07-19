@@ -648,33 +648,37 @@
 
     <!-- Header -->
     <header class="bg-white shadow-base py-4 sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center px-4 md:px-8">
-            <div class="flex items-center">
-                <img src="~/IMG/ASVS Logo.png" alt="دفترك الإلكتروني" class="h-10 md:h-12">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <img src="~/IMG/ASVS Logo.png" alt="دفتر" class="h-10 w-10">
+                <h1 class="text-2xl font-bold text-primary">دفتر</h1>
             </div>
-            <nav class="hidden md:flex flex-1 justify-center">
-                <ul class="flex space-x-6 lg:space-x-8 space-x-reverse header-nav">
-                    <li><a href="#hero" class="hover:text-primary text-sm lg:text-base">الرئيسية</a></li>
-                    <li><a href="#features" class="hover:text-primary text-sm lg:text-base">لماذا دفتر؟</a></li>
-                    <li><a href="#testimonials" class="hover:text-primary text-sm lg:text-base">آراء العملاء</a></li>
-                    <li><a href="#how-to-subscribe" class="hover:text-primary text-sm lg:text-base">كيف تشترك؟</a></li>
-                    <li><a href="#pricing" class="hover:text-primary text-sm lg:text-base">الاشتراك</a></li>
-                    <li><a href="#contact" class="hover:text-primary text-sm lg:text-base">تواصل معنا</a></li>
-                </ul>
+            <nav class="hidden md:flex space-x-6 space-x-reverse">
+                <a href="#features" class="text-gray-600 hover:text-primary transition-colors">المميزات</a>
+                <a href="#pricing" class="text-gray-600 hover:text-primary transition-colors">الأسعار</a>
+                <a href="#contact" class="text-gray-600 hover:text-primary transition-colors">تواصل معنا</a>
             </nav>
-            <button id="mobile-menu-btn" class="md:hidden text-text-primary">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
-        </div>
-        <div id="mobile-menu" class="md:hidden bg-white border-t border-border-color hidden">
-            <ul class="py-4 space-y-2">
-                <li><a href="#hero" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">الرئيسية</a></li>
-                <li><a href="#features" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">لماذا دفتر؟</a></li>
-                <li><a href="#testimonials" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">آراء العملاء</a></li>
-                <li><a href="#how-to-subscribe" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">كيف تشترك؟</a></li>
-                <li><a href="#pricing" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">الاشتراك</a></li>
-                <li><a href="#contact" class="block px-4 py-2 hover:bg-bg-secondary hover:text-primary">تواصل معنا</a></li>
-            </ul>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a href="@Url.Action("Dashboard", "User")" class="btn-primary">
+                            <i class="fas fa-tachometer-alt ml-2"></i>لوحة التحكم
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Summary", "Transaction")" class="btn-primary">
+                            <i class="fas fa-play ml-2"></i>ابدأ الآن
+                        </a>
+                    }
+                }
+                else
+                {
+                    <a href="/auth/LOGIN" class="btn-outline">سجل دخول</a>
+                }
+            </div>
         </div>
     </header>
 

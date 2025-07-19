@@ -26,6 +26,15 @@ namespace Ledger__MVC
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            // إعداد مسارات تسجيل الدخول
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Auth/Login";
+                options.LogoutPath = "/Auth/Logout";
+                options.AccessDeniedPath = "/Auth/AccessDenied";
+                options.ReturnUrlParameter = "returnUrl";
+            });
+
             builder.Services.AddControllersWithViews();
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
@@ -64,17 +73,9 @@ namespace Ledger__MVC
 
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.MapGet("/", async context =>
-            //{
-            //    if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
-            //    {
-            //        context.Response.Redirect("/Transaction/Summary");
-            //    }
-            //    else
-            //    {
-            //        context.Response.Redirect("/auth/LOGIN");
-            //    }
-            //});
+
+            // إضافة middleware للتحقق من الاشتراك
+            app.UseMiddleware<SubscriptionValidationMiddleware.SubscriptionValidationMiddleware>();
 
             app.MapControllerRoute(
                 name: "default",

@@ -1,4 +1,5 @@
 using Ledger__MVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -13,11 +14,26 @@ namespace Ledger__MVC.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
+            // إذا كان المستخدم مسجل دخول، توجيهه حسب الصلاحية
+            if (User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Dashboard", "User");
+                }
+                else
+                {
+                    return RedirectToAction("Summary", "Transaction");
+                }
+            }
+
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();

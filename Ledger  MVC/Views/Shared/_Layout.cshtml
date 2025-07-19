@@ -523,7 +523,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+                                <form class="form-inline" asp-controller="Auth" asp-action="Logout" method="post">
                                     <button type="submit" class="nav-link btn btn-link">
                                         <i class="fas fa-sign-out-alt ms-1"></i> تسجيل خروج
                                     </button>

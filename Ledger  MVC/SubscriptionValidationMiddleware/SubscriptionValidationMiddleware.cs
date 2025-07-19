@@ -1,4 +1,9 @@
 ﻿using Ledger__MVC.Data;
+using Ledger__MVC.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -25,11 +30,12 @@ namespace Ledger__MVC.SubscriptionValidationMiddleware
 
                     if (user != null && (!user.IsActive || user.SubscriptionEndDate < DateTime.Now))
                     {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        await context.Response.WriteAsJsonAsync(new
-                        {
-                            Message = "انتهى اشتراكك أو تم إيقاف حسابك. الرجاء التجديد أو التواصل مع الإدارة."
-                        });
+                        // تسجيل خروج تلقائي
+                        var signInManager = context.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
+                        await signInManager.SignOutAsync();
+                        
+                        // إعادة توجيه لصفحة التجديد
+                        context.Response.Redirect("/Auth/Renewal");
                         return;
                     }
                 }

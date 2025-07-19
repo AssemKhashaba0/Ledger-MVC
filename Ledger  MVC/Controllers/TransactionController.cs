@@ -14,6 +14,7 @@ using System.Security.Claims;
 
 namespace Ledger__MVC.Controllers
 {
+    [Authorize(Roles = nameof(UserRole.User))]
     public class TransactionController : Controller
     {
         private readonly ApplicationDbContext _context;

@@ -95,6 +95,18 @@ namespace Ledger__MVC.Controllers
                     if (user.SubscriptionEndDate < DateTime.Now || !user.IsActive)
                     {
                         await _signInManager.SignOutAsync();
+                        
+                        // تسجيل عملية تسجيل الخروج التلقائي
+                        var logoutAuditLog = new AuditLog
+                        {
+                            ApplicationUserId = user.Id,
+                            Action = "تسجيل خروج تلقائي",
+                            Details = $"تم تسجيل خروج المستخدم {user.Email} تلقائ<lemma> بسبب انتهاء الاشتراك",
+                            Timestamp = DateTime.Now
+                        };
+                        _context.AuditLogs.Add(logoutAuditLog);
+                        await _context.SaveChangesAsync();
+                        
                         TempData["Error"] = "انتهى اشتراكك، الرجاء التجديد";
                         return RedirectToAction("Renewal");
                     }
@@ -245,14 +257,41 @@ namespace Ledger__MVC.Controllers
             return recentFailedAttempts >= 5;
         }
 
-        //// دالة لإعادة التوجيه إلى الصفحة المطلوبة
-        //private IActionResult RedirectToLocal(string returnUrl)
-        //{
-        //    if (Url.IsLocalUrl(returnUrl))
-        //    {
-        //        return Redirect(returnUrl);
-        //    }
-        //    return RedirectToAction("Index", "Home");
-        //}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    // تسجيل عملية تسجيل الخروج
+                    var auditLog = new AuditLog
+                    {
+                        ApplicationUserId = user.Id,
+                        Action = "تسجيل خروج",
+                        Details = $"المستخدم {user.Email} قام بتسجيل الخروج",
+                        Timestamp = DateTime.Now
+                    };
+                    _context.AuditLogs.Add(auditLog);
+                    await _context.SaveChangesAsync();
+                }
+
+                await _signInManager.SignOutAsync();
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"حدث خطأ أثناء تسجيل الخروج: {ex.Message}";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }

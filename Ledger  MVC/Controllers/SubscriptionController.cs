@@ -13,6 +13,7 @@ using Ledger__MVC.Models;
 
 namespace Ledger__MVC.Controllers
 {
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public class SubscriptionController : Controller
     {
         private readonly ApplicationDbContext _context;

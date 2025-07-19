@@ -1,0 +1,123 @@
+
+@{
+    ViewData["Title"] = "الوصول مرفوض";
+    Layout = null;
+}
+
+<style>
+    /* تعريف المتغيرات اللونية والتنسيق الأساسي */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #a5b4fc;
+        --primary-dark: #4f46e5;
+        --secondary: #f1f5f9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444; /* اللون الأساسي للرسائل الخطأ */
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --sidebar-width: 260px;
+        --sidebar-collapsed: 60px;
+        --header-height: 64px;
+        --transition: 0.3s ease;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex; /* لمركزة المحتوى عموديًا وأفقيًا */
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh; /* لضمان أن الصفحة تأخذ ارتفاع الشاشة بالكامل */
+        margin: 0;
+        padding: 20px; /* بعض المسافة البادئة */
+        direction: rtl; /* لضمان اتجاه الصفحة من اليمين لليسار */
+    }
+
+    header {
+        text-align: center;
+        background-color: var(--bg-card);
+        padding: 40px 30px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        max-width: 500px;
+        width: 100%;
+        border: 1px solid var(--border);
+        animation: fadeIn 1s ease-out; /* تأثير ظهور لطيف */
+    }
+
+    h1.text-danger {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--danger) !important; /* استخدام لون الخطر من المتغيرات */
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px; /* مسافة بين الأيقونة والنص */
+    }
+
+        h1.text-danger i {
+            font-size: 2.2rem; /* حجم أكبر للأيقونة */
+        }
+
+    p.text-danger {
+        font-size: 1.2rem;
+        color: var(--text-secondary) !important; /* نص الرسالة بلون ثانوي ليكون أقل حدة */
+        margin-top: 1rem;
+    }
+
+    /* زر العودة للصفحة الرئيسية */
+    .btn-home {
+        display: inline-flex; /* لترتيب الأيقونة والنص */
+        align-items: center;
+        gap: 8px;
+        margin-top: 2rem;
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: var(--primary);
+        border: none;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        text-decoration: none; /* لإزالة التسطير من الرابط */
+    }
+
+        .btn-home:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+    /* Animations */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<header>
+    <h1 class="text-danger"><i class="fas fa-exclamation-circle"></i> @ViewData["Title"]</h1>
+    <p class="text-danger">عذراً، ليس لديك إذن للوصول إلى هذا المورد.</p>
+    <a href="/" class="btn-home">
+        <i class="fas fa-home"></i> العودة للصفحة الرئيسية
+    </a>
+</header>
