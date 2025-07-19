@@ -13,135 +13,427 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --transition: 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             direction: rtl;
             text-align: right;
-            background: #f8f9fa;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
-        .report-container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
+
+        /* Mobile-first Layout */
+        .mobile-container {
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-secondary);
         }
-        .report-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .mobile-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 30px;
+            padding: 20px 15px;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
         }
-        .client-info {
-            background: #e3f2fd;
-            padding: 25px;
-            margin: 20px;
-            border-radius: 10px;
-            border-right: 5px solid #2196f3;
-        }
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .summary-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-top: 4px solid;
-        }
-        .debt-card { border-top-color: #f44336; }
-        .payment-card { border-top-color: #4caf50; }
-        .balance-card { border-top-color: #ff9800; }
-        .transactions-table {
-            margin: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .table th {
-            background: #f8f9fa;
-            border: none;
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin: 0 0 10px 0;
             font-weight: 600;
+        }
+
+        .mobile-header h2 {
+            font-size: 1.2rem;
+            margin: 0 0 5px 0;
+            opacity: 0.9;
+        }
+
+        .mobile-header .date {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .mobile-content {
             padding: 15px;
         }
-        .table td {
-            padding: 12px 15px;
-            border: none;
-            border-bottom: 1px solid #eee;
+
+        /* Client Info Card */
+        .client-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
         }
-        .debt-row { color: #f44336; font-weight: 600; }
-        .payment-row { color: #4caf50; font-weight: 600; }
-        .balance-positive { color: #f44336; }
-        .balance-negative { color: #4caf50; }
-        .balance-zero { color: #666; }
+
+        .client-card h4 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .client-info-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .client-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .client-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .client-info-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .client-info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Summary Cards */
+        .summary-section {
+            margin-bottom: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 4px;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .debt-card::before { background: var(--danger); }
+        .payment-card::before { background: var(--success); }
+        .balance-card::before { background: var(--warning); }
+
+        .summary-card h5 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .summary-card h3 {
+            font-size: 1.4rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .debt-amount { color: var(--danger); }
+        .payment-amount { color: var(--success); }
+        .balance-positive { color: var(--danger); }
+        .balance-negative { color: var(--success); }
+        .balance-zero { color: var(--text-muted); }
+
+        /* Transactions Section */
+        .transactions-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .transactions-header {
+            background: var(--secondary);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transactions-header h4 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Mobile Transaction List */
+        .transaction-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-item:hover {
+            background: var(--secondary);
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .debt-type {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .payment-type {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .transaction-details {
+            display: grid;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .transaction-detail {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+        }
+
+        .transaction-balance {
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        .balance-positive-bg {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .balance-negative-bg {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .balance-zero-bg {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-muted);
+        }
+
+        /* Print Button */
         .print-btn {
             position: fixed;
             bottom: 20px;
             left: 20px;
             z-index: 1000;
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 50px;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
         }
+
+        .print-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @@media (min-width: 576px) {
+            .summary-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .mobile-content {
+                padding: 20px;
+            }
+        }
+
+        @@media (min-width: 768px) {
+            .mobile-container {
+                max-width: 800px;
+                margin: 0 auto;
+                box-shadow: var(--shadow-lg);
+            }
+        }
+
         @@media print {
             .print-btn { display: none; }
-            .report-container { box-shadow: none; margin: 0; }
+            .mobile-container { box-shadow: none; margin: 0; }
+            .mobile-content { padding: 10px; }
+            .transaction-list { max-height: none; overflow: visible; }
         }
-        @@media (max-width: 768px) {
-            .summary-cards { grid-template-columns: 1fr; }
-            .report-container { margin: 10px; }
+
+        /* Loading Animation */
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .client-card, .summary-card, .transactions-section {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Scrollbar Styling */
+        .transaction-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .transaction-list::-webkit-scrollbar-track {
+            background: var(--secondary);
+        }
+
+        .transaction-list::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
-    <div class="report-container">
-        <div class="report-header">
-            <h1><i class="fas fa-file-invoice"></i> تقرير معاملات العميل</h1>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="mobile-header">
+            <h1><i class="fas fa-file-invoice"></i> تقرير المعاملات</h1>
             <h2>@Model.Client.Name</h2>
-            <p><i class="fas fa-calendar"></i> @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</p>
+            <p class="date"><i class="fas fa-calendar"></i> @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</p>
         </div>
 
-        <div class="client-info">
-            <h4><i class="fas fa-user"></i> معلومات العميل</h4>
-            <div class="row">
-                <div class="col-md-4"><strong>الاسم:</strong> @Model.Client.Name</div>
-                <div class="col-md-4"><strong>الهاتف:</strong> @Model.Client.PhoneNumber</div>
-                <div class="col-md-4"><strong>الإيميل:</strong> @(Model.Client.Email ?? "غير محدد")</div>
+        <div class="mobile-content">
+            <!-- Client Info -->
+            <div class="client-card">
+                <h4><i class="fas fa-user"></i> معلومات العميل</h4>
+                <div class="client-info-grid">
+                    <div class="client-info-item">
+                        <span class="client-info-label">الاسم:</span>
+                        <span class="client-info-value">@Model.Client.Name</span>
+                    </div>
+                    <div class="client-info-item">
+                        <span class="client-info-label">الهاتف:</span>
+                        <span class="client-info-value">@Model.Client.PhoneNumber</span>
+                    </div>
+                    <div class="client-info-item">
+                        <span class="client-info-label">الإيميل:</span>
+                        <span class="client-info-value">@(Model.Client.Email ?? "غير محدد")</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="summary-cards">
-            <div class="summary-card debt-card">
-                <h5><i class="fas fa-arrow-up"></i> إجمالي المديونية</h5>
-                <h3>@Model.TotalDebt.ToString("C2", egyptianCulture)</h3>
+            <!-- Summary Cards -->
+            <div class="summary-section">
+                <div class="summary-cards">
+                    <div class="summary-card debt-card">
+                        <h5><i class="fas fa-arrow-up"></i> إجمالي ليك</h5>
+                        <h3>@Model.TotalDebt.ToString("C2", egyptianCulture)</h3>
+                    </div>
+                    <div class="summary-card payment-card">
+                        <h5><i class="fas fa-arrow-down"></i> إجمالي عليك</h5>
+                        <h3>@Model.TotalPayment.ToString("C2", egyptianCulture)</h3>
+                    </div>
+                    <div class="summary-card balance-card">
+                        <h5><i class="fas fa-balance-scale"></i> الحالة النهائية</h5>
+                        <h3 class="@(Model.NetBalance > 0 ? "balance-positive" : Model.NetBalance < 0 ? "balance-negative" : "balance-zero")">
+                            @Model.Status: @Math.Abs(Model.NetBalance).ToString("C2", egyptianCulture)
+                        </h3>
+                    </div>
+                </div>
             </div>
-            <div class="summary-card payment-card">
-                <h5><i class="fas fa-arrow-down"></i> إجمالي المدفوعات</h5>
-                <h3>@Model.TotalPayment.ToString("C2", egyptianCulture)</h3>
-            </div>
-            <div class="summary-card balance-card">
-                <h5><i class="fas fa-balance-scale"></i> الحالة النهائية</h5>
-                <h3 class="@(Model.NetBalance > 0 ? "balance-positive" : Model.NetBalance < 0 ? "balance-negative" : "balance-zero")">
-                    @Model.Status: @Math.Abs(Model.NetBalance).ToString("C2", egyptianCulture)
-                </h3>
-            </div>
-        </div>
 
-        <div class="transactions-table">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>التاريخ</th>
-                        <th>النوع</th>
-                        <th>المبلغ</th>
-                        <th>الملاحظات</th>
-                        <th>الرصيد التراكمي</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <!-- Transactions -->
+            <div class="transactions-section">
+                <div class="transactions-header">
+                    <h4><i class="fas fa-list"></i> تفاصيل المعاملات</h4>
+                </div>
+                
+                <div class="transaction-list">
                     @{
                         var runningBalance = 0m;
                         var counter = 1;
@@ -153,30 +445,42 @@
                         else
                             runningBalance -= transaction.Amount;
 
-                        var typeClass = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "debt-row" : "payment-row";
+                        var typeClass = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "debt-type" : "payment-type";
+                        var amountClass = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "debt-amount" : "payment-amount";
                         var typeName = transaction.Type == Ledger__MVC.Models.TransactionType.Debt ? "مديونية" : "دفعة";
-                        var balanceClass = runningBalance > 0 ? "balance-positive" : runningBalance < 0 ? "balance-negative" : "balance-zero";
+                        var balanceClass = runningBalance > 0 ? "balance-positive-bg" : runningBalance < 0 ? "balance-negative-bg" : "balance-zero-bg";
 
-                        <tr>
-                            <td>@counter</td>
-                            <td>@transaction.Date.ToString("yyyy/MM/dd HH:mm")</td>
-                            <td class="@typeClass">@typeName</td>
-                            <td class="@typeClass">@transaction.Amount.ToString("C2", egyptianCulture)</td>
-                            <td>@(transaction.Notes ?? "-")</td>
-                            <td class="@balanceClass">
-                                @Math.Abs(runningBalance).ToString("C2", egyptianCulture)
+                        <div class="transaction-item">
+                            <div class="transaction-header">
+                                <span class="transaction-type @typeClass">@typeName</span>
+                                <span class="transaction-amount @amountClass">@transaction.Amount.ToString("C2", egyptianCulture)</span>
+                            </div>
+                            
+                            <div class="transaction-details">
+                                <div class="transaction-detail">
+                                    <span class="detail-label">التاريخ:</span>
+                                    <span class="detail-value">@transaction.Date.ToString("yyyy/MM/dd HH:mm")</span>
+                                </div>
+                                <div class="transaction-detail">
+                                    <span class="detail-label">الملاحظات:</span>
+                                    <span class="detail-value">@(transaction.Notes ?? "-")</span>
+                                </div>
+                            </div>
+                            
+                            <div class="transaction-balance @balanceClass">
+                                الرصيد: @Math.Abs(runningBalance).ToString("C2", egyptianCulture)
                                 @(runningBalance > 0 ? "(عليه)" : runningBalance < 0 ? "(ليه)" : "(متسوي)")
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                         counter++;
                     }
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <button class="btn btn-primary print-btn" onclick="window.print()">
-        <i class="fas fa-print"></i> طباعة
+    <button class="btn print-btn" onclick="window.print()">
+        <i class="fas fa-print"></i>
     </button>
 
     <script>
@@ -184,9 +488,20 @@
         window.addEventListener('beforeprint', function() {
             document.title = 'تقرير_معاملات_@Model.Client.Name';
         });
+
+        // إضافة تأثيرات تفاعلية
+        document.addEventListener('DOMContentLoaded', function() {
+            // تأثير النقر على المعاملات
+            const transactionItems = document.querySelectorAll('.transaction-item');
+            transactionItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+        });
     </script>
 </body>
 </html>
-
-
-

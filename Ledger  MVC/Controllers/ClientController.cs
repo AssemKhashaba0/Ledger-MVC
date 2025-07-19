@@ -121,12 +121,12 @@ namespace Ledger__MVC.Controllers
                         Status = c.Transactions.Any()
                             ? (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
                                c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) > 0
-                               ? "عليه فلوس"  // العميل مدين لك
+                               ? "ليك فلوس"  // العميل مديون ليك
                                : (c.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount) -
                                   c.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount) < 0
-                                  ? "ليه فلوس"  // العميل له فلوس عندك
+                                  ? "عليك فلوس"  // انت مديون للعميل
                                   : "متسوي"))
-                            : "متسوي"
+                            : "لا توجد معاملات"
                     })
                     .ToListAsync();
 

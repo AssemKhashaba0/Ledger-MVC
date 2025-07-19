@@ -19,11 +19,11 @@ namespace Ledger__MVC.Models
 
     public enum TransactionType
     {
-        [Display(Name = "عليّا (دين)")]
-        Debt = 0,     // أنت مديون للعميل
+        [Display(Name = "ليك (مديون)")]
+        Debt = 0,     // العميل مديون ليك
 
-        [Display(Name = "ليّا (قبض)")]
-        Payment = 1   // قبضت من العميل
+        [Display(Name = "عليك (دفعة)")]
+        Payment = 1   // دفعت للعميل
     }
 
     public enum UserRole

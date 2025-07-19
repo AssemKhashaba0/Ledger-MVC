@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Ledger__MVC.Models;
 using Ledger__MVC.Data;
+using System.Security.Claims;
 
 namespace Ledger__MVC.Controllers
 {
@@ -60,11 +61,27 @@ namespace Ledger__MVC.Controllers
                 await _signInManager.SignOutAsync();
                 
                 _logger.LogInformation("محاولة تسجيل دخول الديمو");
-                var result = await _signInManager.PasswordSignInAsync(demoEmail, demoPassword, false, false);
+                var result = await _signInManager.PasswordSignInAsync(demoEmail, demoPassword, isPersistent: false, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("نجح تسجيل دخول الديمو");
+                    
+                    // التأكد من أن المستخدم مسجل دخول بالفعل
+                    var demoUserAfterLogin = await _userManager.FindByEmailAsync(demoEmail);
+                    if (demoUserAfterLogin != null)
+                    {
+                        // إضافة Claims إضافية للتأكد
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, demoUserAfterLogin.Id),
+                            new Claim(ClaimTypes.Email, demoUserAfterLogin.Email),
+                            new Claim(ClaimTypes.Role, "User")
+                        };
+                        
+                        await _signInManager.SignInWithClaimsAsync(demoUserAfterLogin, isPersistent: false, claims);
+                    }
+                    
                     TempData["Success"] = "مرحباً بك في النسخة التجريبية! البيانات سيتم إعادة تعيينها كل 10 دقائق";
                     return RedirectToAction("Summary", "Transaction");
                 }
@@ -188,6 +205,8 @@ namespace Ledger__MVC.Controllers
         }
     }
 }
+
+
 
 
 

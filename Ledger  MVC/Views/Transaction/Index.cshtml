@@ -1,4 +1,4 @@
-﻿@model dynamic
+﻿@model Ledger__MVC.Controllers.TransactionController.TransactionIndexViewModel
 @{
     ViewData["Title"] = "إدارة المعاملات";
     var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
@@ -563,13 +563,13 @@
                     <div class="col-md-3">
                         <div class="summary-item debt">
                             <div class="summary-value">@selectedClient.TotalDebt.ToString("C2", egyptianCulture)</div>
-                            <div class="summary-label">إجمالي المديونية</div>
+                            <div class="summary-label">إجمالي ليك</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="summary-item payment">
                             <div class="summary-value">@selectedClient.TotalPayment.ToString("C2", egyptianCulture)</div>
-                            <div class="summary-label">إجمالي المدفوعات</div>
+                            <div class="summary-label">إجمالي عليك</div>
                         </div>
                     </div>
                     <div class="col-md-3">

@@ -42,10 +42,16 @@ namespace Ledger__MVC.Controllers
             public int ClientId { get; set; }
             public string ClientName { get; set; }
             public TransactionType Type { get; set; }
-            public string TypeDisplayName => GetEnumDisplayName(Type);
+            public string TypeDisplayName { get; set; }
             public decimal Amount { get; set; }
             public DateTime Date { get; set; }
             public string Notes { get; set; }
+            
+            // تفاصيل العميل
+            public decimal ClientTotalDebt { get; set; }
+            public decimal ClientTotalPayment { get; set; }
+            public decimal ClientNetBalance { get; set; }
+            public string ClientStatus { get; set; }
         }
 
         // ViewModel for creating/updating transactions
@@ -96,6 +102,13 @@ namespace Ledger__MVC.Controllers
             public List<TransactionViewModel> Transactions { get; set; }
         }
 
+        // ViewModel for transaction index
+        public class TransactionIndexViewModel
+        {
+            public List<TransactionViewModel> Transactions { get; set; } = new List<TransactionViewModel>();
+            public int? ClientId { get; set; }
+        }
+
         // GET: /Transaction/Index
         [HttpGet]
         [Authorize]
@@ -135,29 +148,22 @@ namespace Ledger__MVC.Controllers
 
                 if (clientId.HasValue)
                 {
-                    var clientExists = await _context.Clients
-                        .AnyAsync(c => c.Id == clientId.Value && c.ApplicationUserId == userId);
-                    if (!clientExists)
-                    {
-                        _logger.LogWarning("Client not found or does not belong to user. ClientId: {ClientId}, UserId: {UserId}", clientId, userId);
-                        TempData["Error"] = "العميل غير موجود";
-                        return RedirectToAction(nameof(Index));
-                    }
                     query = query.Where(t => t.ClientId == clientId.Value);
                 }
 
                 var transactions = await query
+                    .OrderByDescending(t => t.Date)
                     .Select(t => new TransactionViewModel
                     {
                         Id = t.Id,
                         ClientId = t.ClientId,
                         ClientName = t.Client.Name,
                         Type = t.Type,
+                        TypeDisplayName = t.Type == TransactionType.Debt ? "ليك (مديون)" : "عليك (دفعة)",
                         Amount = t.Amount,
                         Date = t.Date,
-                        Notes = t.Notes ?? "-"
+                        Notes = t.Notes
                     })
-                    .OrderByDescending(t => t.Date)
                     .ToListAsync();
 
                 ViewData["Clients"] = await _context.Clients
@@ -165,13 +171,26 @@ namespace Ledger__MVC.Controllers
                     .Select(c => new ClientSelectViewModel { Id = c.Id, Name = c.Name })
                     .ToListAsync();
 
-                return View(new { Transactions = transactions, ClientId = clientId });
+                var model = new TransactionIndexViewModel
+                {
+                    Transactions = transactions,
+                    ClientId = clientId
+                };
+
+                return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving transactions. UserId: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 TempData["Error"] = "حدث خطأ غير متوقع";
-                return View(new { Transactions = new List<TransactionViewModel>(), ClientId = clientId });
+                
+                var emptyModel = new TransactionIndexViewModel
+                {
+                    Transactions = new List<TransactionViewModel>(),
+                    ClientId = clientId
+                };
+                
+                return View(emptyModel);
             }
         }
 
@@ -622,6 +641,7 @@ namespace Ledger__MVC.Controllers
 
             var transaction = await _context.FinancialTransactions
                 .Include(t => t.Client)
+                .ThenInclude(c => c.Transactions)
                 .FirstOrDefaultAsync(t => t.Id == id && t.ApplicationUserId == userId);
 
             if (transaction == null)
@@ -631,15 +651,26 @@ namespace Ledger__MVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // حساب إجماليات العميل
+            var totalDebt = transaction.Client.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
+            var totalPayment = transaction.Client.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
+            var netBalance = totalDebt - totalPayment;
+
             var model = new TransactionViewModel
             {
                 Id = transaction.Id,
                 ClientId = transaction.ClientId,
                 ClientName = transaction.Client.Name,
                 Type = transaction.Type,
+                TypeDisplayName = transaction.Type == TransactionType.Debt ? "ليك (مديون)" : "عليك (دفعة)",
                 Amount = transaction.Amount,
                 Date = transaction.Date,
-                Notes = transaction.Notes ?? "-"
+                Notes = transaction.Notes,
+                // إضافة تفاصيل العميل
+                ClientTotalDebt = totalDebt,
+                ClientTotalPayment = totalPayment,
+                ClientNetBalance = netBalance,
+                ClientStatus = netBalance > 0 ? "ليك فلوس" : netBalance < 0 ? "عليك فلوس" : "متسوي"
             };
 
             return View(model);
@@ -678,7 +709,7 @@ namespace Ledger__MVC.Controllers
                     TotalDebt = totalDebt,
                     TotalPayment = totalPayment,
                     NetBalance = netBalance,
-                    Status = netBalance > 0 ? "عليه فلوس" : netBalance < 0 ? "ليه فلوس" : "متسوي"
+                    Status = netBalance > 0 ? "ليك فلوس" : netBalance < 0 ? "عليك فلوس" : "متسوي"
                 };
 
                 return View("TransactionReport", model);
