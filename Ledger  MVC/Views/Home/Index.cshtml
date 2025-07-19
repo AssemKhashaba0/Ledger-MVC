@@ -888,7 +888,7 @@
                         200 <span class="text-lg">جنيه</span>
                     </div>
                     <p class="text-text-secondary mb-6">
-                        شهرياً - أقل من 7 جنيه في اليوم
+                        شهري - أقل من 7 جنيه في اليوم
                     </p>
                     <ul class="text-right text-text-secondary mb-8 space-y-2">
                         <li><i class="fas fa-check-circle text-success mr-2"></i> بدون التزام طويل المدى</li>
@@ -952,7 +952,7 @@
                         2500 <span class="text-lg">جنيه</span>
                     </div>
                     <p class="text-text-secondary mb-6">
-                        سنوياً - توفير بسيط
+                        سنو - توفير بسيط
                     </p>
                     <ul class="text-right text-text-secondary mb-8 space-y-2">
                         <li><i class="fas fa-check-circle text-success mr-2"></i> التزام طويل المدى</li>
@@ -1038,6 +1038,25 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
+    <!-- PWA Install Button -->
+    <div id="installPrompt" class="fixed top-4 left-4 bg-primary text-white p-4 rounded-lg shadow-lg hidden z-50 max-w-sm">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-lg">تثبيت التطبيق</h3>
+            <button id="dismissInstall" class="text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p class="mb-4 text-sm">ثبت دفترك الإلكتروني على جهازك للوصول السريع</p>
+        <div class="flex gap-2">
+            <button id="installButton" class="bg-white text-primary px-4 py-2 rounded font-semibold hover:bg-gray-100 transition-colors">
+                <i class="fas fa-download ml-2"></i>تثبيت الآن
+            </button>
+            <button id="laterButton" class="border border-white text-white px-4 py-2 rounded hover:bg-white hover:text-primary transition-colors">
+                لاحق
+            </button>
+        </div>
+    </div>
+
     <script>
         // Optional: Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -1101,6 +1120,58 @@
             link.addEventListener('click', () => {
                 mobileMenu.classList.add('hidden');
             });
+        });
+
+        // PWA Install functionality
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installButton = document.getElementById('installButton');
+        const dismissButton = document.getElementById('dismissInstall');
+        const laterButton = document.getElementById('laterButton');
+
+        // Check if already dismissed
+        const isInstallDismissed = localStorage.getItem('pwa-install-dismissed');
+        const isInstalled = localStorage.getItem('pwa-installed');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt if not dismissed and not installed
+            if (!isInstallDismissed && !isInstalled) {
+                setTimeout(() => {
+                    installPrompt.classList.remove('hidden');
+                }, 3000); // Show after 3 seconds
+            }
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    localStorage.setItem('pwa-installed', 'true');
+                }
+                
+                deferredPrompt = null;
+                installPrompt.classList.add('hidden');
+            }
+        });
+
+        dismissButton.addEventListener('click', () => {
+            localStorage.setItem('pwa-install-dismissed', 'true');
+            installPrompt.classList.add('hidden');
+        });
+
+        laterButton.addEventListener('click', () => {
+            installPrompt.classList.add('hidden');
+        });
+
+        // Hide prompt when app is installed
+        window.addEventListener('appinstalled', () => {
+            localStorage.setItem('pwa-installed', 'true');
+            installPrompt.classList.add('hidden');
         });
     </script>
 </body>

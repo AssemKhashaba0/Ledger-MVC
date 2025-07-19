@@ -1,22 +1,36 @@
 ﻿{
-  "name": "دفترك",
+  "name": "دفترك الإلكتروني - إدارة العملاء والموردين",
   "short_name": "دفترك",
+  "description": "أسهل دفتر إلكتروني لإدارة العملاء والموردين والمستحقات",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "lang": "ar-EG",
+  "dir": "rtl",
+  "scope": "/",
   "icons": [
     {
-      "src": "~/favicon.ico",
+      "src": "/IMG/ASVS Logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "~/favicon.ico",
+      "src": "/IMG/ASVS Logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "screenshots": [
+    {
+      "src": "/IMG/ASVS Logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
