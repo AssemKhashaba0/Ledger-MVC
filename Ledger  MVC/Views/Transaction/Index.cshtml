@@ -1,8 +1,11 @@
 ﻿@model Ledger__MVC.Controllers.TransactionController.TransactionIndexViewModel
 @{
-    ViewData["Title"] = "إدارة المعاملات";
+    ViewData["Title"] = "إدارة المعاملات - كشكول";
     var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
+
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fas fa-exchange-alt me-2"></i> إدارة المعاملات في كشكول</h2>
 
 <style>
     /* الألوان المحددة */
@@ -37,6 +40,7 @@
         background-color: var(--bg-secondary);
         color: var(--text-primary);
         direction: rtl;
+        
         text-align: right;
         line-height: 1.6;
     }

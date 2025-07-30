@@ -1,6 +1,7 @@
 ﻿using Ledger__MVC.Data;
 using Ledger__MVC.Models;
 using Ledger__MVC.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ namespace Ledger__MVC
             builder.Services.AddControllersWithViews();
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+            builder.Services.AddScoped<ExportService>();
 
             // إضافة خدمة إعادة تعيين الديمو
             builder.Services.AddHostedService<DemoResetService>();
@@ -59,12 +61,20 @@ namespace Ledger__MVC
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
+                app.UseDeveloperExceptionPage();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
                 app.UseHsts();
             }
+
+            // إضافة إعدادات الاستضافة
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -74,12 +84,15 @@ namespace Ledger__MVC
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // إضافة middleware للتحقق من الاشتراك
-            app.UseMiddleware<SubscriptionValidationMiddleware.SubscriptionValidationMiddleware>();
+            // تعليق middleware الاشتراك مؤقت<|im_start|> للاختبار
+            // app.UseMiddleware<SubscriptionValidationMiddleware.SubscriptionValidationMiddleware>();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            // إضافة fallback route
+            app.MapFallbackToController("Index", "Home");
 
             app.Run();
         }

@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'daftar-v1.0.1';
+﻿const CACHE_NAME = 'kashkool-v1.0.1';
 const urlsToCache = [
   '/',
   '/css/site.css',

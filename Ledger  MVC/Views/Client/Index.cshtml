@@ -1,7 +1,7 @@
 ﻿@using System.Linq
 @using System.Globalization
 @{
-    ViewData["Title"] = "إدارة العملاء";
+    ViewData["Title"] = "إدارة العملاء - كشكول";
     var egyptianCulture = new System.Globalization.CultureInfo("ar-EG");
 }
 
@@ -513,6 +513,11 @@
     }
 </style>
 
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fas fa-users me-2"></i> إدارة العملاء في كشكول</h2>
+    <!-- باقي المحتوى -->
+</div>
+
 <div class="clients-container">
     <!-- رأس الصفحة -->
     <div class="page-header">
@@ -521,6 +526,18 @@
             إدارة العملاء
         </h2>
         <div class="subtitle">إدارة شاملة لجميع عملائك ومعاملاتهم</div>
+    </div>
+
+    <!-- أضف هذا في بداية الصفحة بعد العنوان -->
+    <div class="action-buttons mb-4">
+        <a asp-action="ExportAllToExcel" class="btn btn-success">
+            <i class="fas fa-file-excel"></i>
+            تحميل جميع العملاء Excel
+        </a>
+        <button onclick="shareAllClientsWhatsApp()" class="btn btn-success">
+            <i class="fab fa-whatsapp"></i>
+            مشاركة جميع العملاء واتساب
+        </button>
     </div>
 
     <!-- رسائل التنبيه -->
@@ -837,3 +854,17 @@
         });
     </script>
 }
+
+<script>
+function shareAllClientsWhatsApp() {
+    const message = `تقرير جميع العملاء\nيمكنك تحميل التقرير من الرابط التالي:\n${window.location.origin}/Client/ExportAllToExcel`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function shareClientWhatsApp(clientId, clientName) {
+    const message = `تقرير معاملات العميل: ${clientName}\nيمكنك تحميل التقرير من الرابط التالي:\n${window.location.origin}/Client/ExportToExcel/${clientId}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+</script>

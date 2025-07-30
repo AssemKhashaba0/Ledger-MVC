@@ -605,17 +605,35 @@
 
     <!-- أزرار الإجراءات -->
     <div class="action-buttons">
-        <a asp-action="ExportToPdf" asp-route-id="@Model.Id" class="action-btn btn-success">
+        <a asp-action="ExportToExcel" asp-route-id="@Model.Id" class="action-btn btn-success">
+            <i class="fas fa-file-excel"></i>
+            تحميل Excel
+        </a>
+        <a asp-action="ExportToPdf" asp-route-id="@Model.Id" class="action-btn btn-danger">
             <i class="fas fa-file-pdf"></i>
-            تحميل تقرير PDF
+            تحميل PDF
         </a>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="action-btn btn-primary">
-            <i class="fas fa-edit"></i>
-            تعديل العميل
-        </a>
-        <a asp-action="Index" class="action-btn btn-secondary">
-            <i class="fas fa-arrow-right"></i>
-            العودة للقائمة
-        </a>
+        <button onclick="shareClientExcelWhatsApp(@Model.Id, '@Model.Name')" class="action-btn btn-success">
+            <i class="fab fa-whatsapp"></i>
+            مشاركة Excel واتساب
+        </button>
+        <button onclick="shareClientPdfWhatsApp(@Model.Id, '@Model.Name')" class="action-btn btn-danger">
+            <i class="fab fa-whatsapp"></i>
+            مشاركة PDF واتساب
+        </button>
     </div>
 </div>
+
+<script>
+function shareClientExcelWhatsApp(clientId, clientName) {
+    const message = `تقرير معاملات العميل: ${clientName} (Excel)\nيمكنك تحميل التقرير من الرابط التالي:\n${window.location.origin}/Client/ExportToExcel/${clientId}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function shareClientPdfWhatsApp(clientId, clientName) {
+    const message = `تقرير معاملات العميل: ${clientName} (PDF)\nيمكنك تحميل التقرير من الرابط التالي:\n${window.location.origin}/Client/ExportToPdf/${clientId}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+</script>

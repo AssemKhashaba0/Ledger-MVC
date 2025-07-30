@@ -10,6 +10,7 @@ using Ledger__MVC.Data;
 using Ledger__MVC.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using Ledger__MVC.Services;
 
 namespace Ledger__MVC.Controllers
 {
@@ -19,15 +20,18 @@ namespace Ledger__MVC.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ClientController> _logger;
+        private readonly ExportService _exportService;
 
         public ClientController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<ClientController> logger)
+            ILogger<ClientController> logger,
+            ExportService exportService)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _exportService = exportService;
         }
 
         // ViewModel for Index
@@ -437,20 +441,10 @@ namespace Ledger__MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // حساب الإجماليات
-                var totalDebt = client.Transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
-                var totalPayment = client.Transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
-                var netBalance = totalDebt - totalPayment;
-                var status = netBalance > 0 ? "عليه فلوس" : netBalance < 0 ? "ليه فلوس" : "متسوي";
-
-                // إنشاء HTML للـ PDF
-                var html = GenerateClientReportHtml(client, totalDebt, totalPayment, netBalance, status);
+                var pdfData = _exportService.ExportClientToPdf(client.Transactions.ToList(), client, user.FullName);
+                var fileName = $"تقرير_{client.Name}_{DateTime.Now:yyyy-MM-dd}.pdf";
                 
-                // تحويل إلى PDF
-                var pdf = await GeneratePdfFromHtml(html);
-                
-                var fileName = $"تقرير_العميل_{client.Name}_{DateTime.Now:yyyy-MM-dd}.pdf";
-                return File(pdf, "application/pdf", fileName);
+                return File(pdfData, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
@@ -548,6 +542,72 @@ namespace Ledger__MVC.Controllers
             
             // مؤقت<|im_start|> - إرجاع HTML كـ bytes للاختبار
             return System.Text.Encoding.UTF8.GetBytes(html);
+        }
+
+        // GET: /Client/ExportAllToExcel
+        [HttpGet]
+        public async Task<IActionResult> ExportAllToExcel()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return NotFound("المستخدم غير موجود");
+                }
+
+                var clients = await _context.Clients
+                    .Where(c => c.ApplicationUserId == user.Id)
+                    .Include(c => c.Transactions)
+                    .ToListAsync();
+
+                var excelData = _exportService.ExportAllClientsToExcel(clients, user.FullName);
+                var fileName = $"جميع_العملاء_{DateTime.Now:yyyy-MM-dd}.xlsx";
+                
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في تصدير جميع العملاء إلى Excel");
+                TempData["Error"] = "حدث خطأ أثناء التصدير";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: /Client/ExportToExcel/{id}
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    TempData["Error"] = "المستخدم غير موجود";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var client = await _context.Clients
+                    .Include(c => c.Transactions)
+                    .FirstOrDefaultAsync(c => c.Id == id && c.ApplicationUserId == user.Id);
+
+                if (client == null)
+                {
+                    TempData["Error"] = "العميل غير موجود أو لا ينتمي لك";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var excelData = _exportService.ExportTransactionsToExcel(client.Transactions.ToList(), client, user.FullName);
+                var fileName = $"معاملات_{client.Name}_{DateTime.Now:yyyy-MM-dd}.xlsx";
+                
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في تصدير معاملات العميل إلى Excel. ClientId: {ClientId}", id);
+                TempData["Error"] = $"حدث خطأ أثناء التصدير: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

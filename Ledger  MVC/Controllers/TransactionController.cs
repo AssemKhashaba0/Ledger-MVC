@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Claims;
 using System.Globalization;
+using Ledger__MVC.Services;
 
 namespace Ledger__MVC.Controllers
 {
@@ -20,11 +21,13 @@ namespace Ledger__MVC.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<TransactionController> _logger;
+        private readonly ExportService _exportService;
 
-        public TransactionController(ApplicationDbContext context, ILogger<TransactionController> logger)
+        public TransactionController(ApplicationDbContext context, ILogger<TransactionController> logger, ExportService exportService)
         {
             _context = context;
             _logger = logger;
+            _exportService = exportService;
         }
 
         // Helper method to get enum display name
@@ -542,7 +545,6 @@ namespace Ledger__MVC.Controllers
         }
 
         // GET: /Transaction/Summary
-        // GET: /Transaction/Summary
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Summary()
@@ -579,28 +581,35 @@ namespace Ledger__MVC.Controllers
                     .Include(t => t.Client)
                     .ToListAsync();
 
-                // Calculate totals
-                var totalCredit = transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount);
-                var totalDebit = transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount);
-                var netBalance = totalCredit - totalDebit;
+                // حساب الإجماليات بشكل صحيح
+                var totalCredit = transactions.Where(t => t.Type == TransactionType.Debt).Sum(t => t.Amount); // المبالغ المستحقة ليك
+                var totalDebit = transactions.Where(t => t.Type == TransactionType.Payment).Sum(t => t.Amount); // المبالغ المدفوعة عليك
+                var netBalance = totalCredit - totalDebit; // الرصيد الصافي
 
-                // Determine financial status and action-oriented message
-                string status, actionMessage;
-                if (netBalance < 0)
+                string status;
+                string actionMessage;
+
+                if (netBalance > 0)
                 {
-                    status = "ليك فلوس بره! ";
-                    actionMessage = $"لديك رصيد إيجابي بقيمة {netBalance}. تواصل مع عملائك لتحصيل المستحقات وتعزيز أرباحك!";
+                    status = "لك مستحقات! 💰";
+                    actionMessage = $"يوجد لديك مبلغ {Math.Abs(netBalance):N2} جنيه مستحق من العملاء. تابع مع عملائك لتحصيل المبالغ المستحقة.";
                 }
-                else if (netBalance > 0)
+                else if (netBalance < 0)
                 {
-                    status = "عليك مستحقات! ⚠️";
-                    actionMessage = $"لديك مستحقات بقيمة {-netBalance}. راجع معاملاتك وقم بتسوية الحسابات لتحسين وضعك المالي.";
+                    status = "عليك مدفوعات! ⚠️";
+                    actionMessage = $"يوجد عليك مبلغ {Math.Abs(netBalance):N2} جنيه مستحق للعملاء. تأكد من سداد المبالغ المستحقة في الوقت المناسب.";
                 }
                 else
                 {
                     status = "حساباتك متساوية! ✅";
                     actionMessage = "أنت في المسار الصحيح! استمر في إدارة معاملاتك بكفاءة للحفاظ على التوازن.";
                 }
+
+                // إحصائيات إضافية
+                var clientCount = await _context.Clients.CountAsync(c => c.ApplicationUserId == userId);
+                var transactionCount = transactions.Count;
+                var thisMonthTransactions = transactions.Where(t => t.Date.Month == DateTime.Now.Month && t.Date.Year == DateTime.Now.Year).Count();
+                var avgTransactionAmount = transactions.Any() ? transactions.Average(t => t.Amount) : 0;
 
                 // Prepare the summary view model
                 var summary = new
@@ -610,13 +619,14 @@ namespace Ledger__MVC.Controllers
                     NetBalance = netBalance,
                     Status = status,
                     ActionMessage = actionMessage,
-                    ClientCount = await _context.Clients.CountAsync(c => c.ApplicationUserId == userId),
-                    TransactionCount = transactions.Count
+                    ClientCount = clientCount,
+                    TransactionCount = transactionCount,
+                    ThisMonthTransactions = thisMonthTransactions,
+                    AverageTransactionAmount = avgTransactionAmount,
+                    UserName = user.FullName ?? user.UserName
                 };
 
-                // Pass the summary to the view
                 ViewData["FinancialSummary"] = summary;
-
                 return View();
             }
             catch (Exception ex)
@@ -719,6 +729,98 @@ namespace Ledger__MVC.Controllers
                 _logger.LogError(ex, "خطأ أثناء تصدير معاملات العميل. ClientId: {ClientId}", clientId);
                 TempData["Error"] = "حدث خطأ أثناء تصدير التقرير";
                 return RedirectToAction(nameof(Index), new { clientId });
+            }
+        }
+
+        // GET: /Transaction/ExportClientToExcel/{clientId}
+        [HttpGet]
+        public async Task<IActionResult> ExportClientToExcel(int clientId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _context.ApplicationUsers.FindAsync(userId);
+                
+                var client = await _context.Clients
+                    .Include(c => c.Transactions)
+                    .FirstOrDefaultAsync(c => c.Id == clientId && c.ApplicationUserId == userId);
+
+                if (client == null)
+                {
+                    TempData["Error"] = "العميل غير موجود";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var excelData = _exportService.ExportTransactionsToExcel(client.Transactions.ToList(), client, user.FullName);
+                var fileName = $"معاملات_{client.Name}_{DateTime.Now:yyyy-MM-dd}.xlsx";
+                
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في تصدير Excel");
+                TempData["Error"] = "حدث خطأ أثناء التصدير";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: /Transaction/ExportClientToPdf/{clientId}
+        [HttpGet]
+        public async Task<IActionResult> ExportClientToPdf(int clientId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _context.ApplicationUsers.FindAsync(userId);
+                
+                var client = await _context.Clients
+                    .Include(c => c.Transactions)
+                    .FirstOrDefaultAsync(c => c.Id == clientId && c.ApplicationUserId == userId);
+
+                if (client == null)
+                {
+                    TempData["Error"] = "العميل غير موجود";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var pdfData = _exportService.ExportClientToPdf(client.Transactions.ToList(), client, user.FullName);
+                var fileName = $"معاملات_{client.Name}_{DateTime.Now:yyyy-MM-dd}.pdf";
+                
+                return File(pdfData, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في تصدير PDF");
+                TempData["Error"] = "حدث خطأ أثناء التصدير";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: /Transaction/ExportAllToExcel
+        [HttpGet]
+        public async Task<IActionResult> ExportAllToExcel()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _context.ApplicationUsers.FindAsync(userId);
+                
+                var transactions = await _context.FinancialTransactions
+                    .Where(t => t.ApplicationUserId == userId)
+                    .Include(t => t.Client)
+                    .ToListAsync();
+
+                var dummyClient = new Client { Name = "جميع العملاء", PhoneNumber = "متعدد" };
+                var excelData = _exportService.ExportTransactionsToExcel(transactions, dummyClient, user.FullName);
+                var fileName = $"جميع_المعاملات_{DateTime.Now:yyyy-MM-dd}.xlsx";
+                
+                return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في تصدير جميع المعاملات");
+                TempData["Error"] = "حدث خطأ أثناء التصدير";
+                return RedirectToAction(nameof(Index));
             }
         }
     }

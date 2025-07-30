@@ -17,32 +17,49 @@ namespace Ledger__MVC.Controllers
         [AllowAnonymous]
         public IActionResult Index()
         {
-            // إذا كان المستخدم مسجل دخول، توجيهه حسب الصلاحية
-            if (User.Identity.IsAuthenticated)
+            try
             {
-                if (User.IsInRole("Admin"))
+                // إذا كان المستخدم مسجل دخول، توجيهه حسب الصلاحية
+                if (User.Identity.IsAuthenticated)
                 {
-                    return RedirectToAction("Dashboard", "User");
+                    if (User.IsInRole("Admin"))
+                    {
+                        return RedirectToAction("Dashboard", "User");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Summary", "Transaction");
+                    }
                 }
-                else
-                {
-                    return RedirectToAction("Summary", "Transaction");
-                }
-            }
 
-            return View();
+                return View();
+            }
+            catch (Exception ex)
+            {
+                // Log the error with more details
+                _logger.LogError(ex, "Error in Home/Index: {Message}", ex.Message);
+                
+                // Return a simple view instead of Error to avoid redirect loops
+                ViewBag.ErrorMessage = "حدث خطأ في تحميل الصفحة";
+                return View("~/Views/Shared/SimpleError.cshtml");
+            }
         }
 
-        [Authorize]
         public IActionResult Privacy()
         {
             return View();
         }
-
+        public IActionResult FQ()
+        {
+            return View();
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var requestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            _logger.LogError("Error occurred. RequestId: {RequestId}", requestId);
+            
+            return View(new ErrorViewModel { RequestId = requestId }); 
         }
     }
 }

@@ -1,0 +1,708 @@
+﻿@{
+    ViewData["Title"] = "الاسئلة الشائعة";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الأسئلة الشائعة - دفترك الإلكتروني</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --transition: 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .category-card:hover .category-icon {
+            transform: rotate(360deg) scale(1.1);
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .category-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .faq-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .faq-category-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .faq-category-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .faq-section:hover .faq-category-header::before {
+            left: 100%;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            background: var(--bg-card);
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .faq-question:hover {
+            background: var(--secondary);
+            transform: translateX(10px);
+            border-right: 4px solid var(--primary);
+        }
+
+        .faq-question.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .faq-icon {
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .faq-question.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+        }
+
+        .faq-answer.active {
+            padding: 20px;
+            max-height: 500px;
+        }
+
+        .faq-answer p {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .faq-answer ul {
+            color: var(--text-secondary);
+            margin-right: 20px;
+        }
+
+        .faq-answer li {
+            margin-bottom: 5px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+        }
+
+        .contact-cta {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .contact-cta h3 {
+            margin-bottom: 15px;
+        }
+
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-method {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: var(--radius);
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .faq-section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-input:focus {
+            transform: scale(1.02);
+        }
+
+        .contact-cta:hover {
+            transform: scale(1.01);
+            transition: var(--transition);
+        }
+
+        .contact-method:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            transition: var(--transition);
+        }
+
+        @@media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .categories {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← العودة للرئيسية</a>
+        
+        <div class="header">
+            <h1>الأسئلة الشائعة</h1>
+            <p>إجابات سريعة على أكثر الأسئلة شيوعًا حول دفترك الإلكتروني</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="ابحث عن سؤالك هنا..." id="searchInput">
+        </div>
+
+        <div class="categories">
+            <div class="category-card" onclick="scrollToSection('subscription')">
+                <div class="category-icon">$</div>
+                <h3>الاشتراك والدفع</h3>
+                <p>أسئلة حول الأسعار والدفع والتجديد</p>
+            </div>
+            <div class="category-card" onclick="scrollToSection('usage')">
+                <div class="category-icon">⚡</div>
+                <h3>الاستخدام</h3>
+                <p>كيفية استخدام النظام وإدارة الحسابات</p>
+            </div>
+            <div class="category-card" onclick="scrollToSection('technical')">
+                <div class="category-icon">⚙</div>
+                <h3>المشاكل التقنية</h3>
+                <p>حلول للمشاكل الشائعة والدعم الفني</p>
+            </div>
+            <div class="category-card" onclick="scrollToSection('security')">
+                <div class="category-icon">🛡</div>
+                <h3>الأمان والخصوصية</h3>
+                <p>حماية البيانات والأمان</p>
+            </div>
+        </div>
+
+        <!-- قسم الاشتراك والدفع -->
+        <div class="faq-section" id="subscription">
+            <div class="faq-category-header">$ الاشتراك والدفع</div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كم سعر الاشتراك الشهري؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>سعر الاشتراك الشهري 200 جنيه فقط - يعني أقل من 7 جنيه في اليوم!</p>
+                    <div class="highlight-box">
+                        <p><strong>باقات الاشتراك المتاحة:</strong></p>
+                        <ul>
+                            <li>شهري: 200 جنيه (30 يوم)</li>
+                            <li>ربع سنوي: 540 جنيه (90 يوم) - وفر 60 جنيه</li>
+                            <li>نصف سنوي: 1000 جنيه (180 يوم) - وفر 200 جنيه</li>
+                            <li>سنوي: 1800 جنيه (365 يوم) - وفر 630 جنيه</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أدفع رسوم الاشتراك؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>الدفع يتم خارج النظام من خلال:</p>
+                    <ul>
+                        <li>فودافون كاش: 01012345678</li>
+                        <li>تحويل بنكي</li>
+                        <li>إيداع في البنك</li>
+                    </ul>
+                    <div class="warning-box">
+                        <p><strong>مهم:</strong> بعد الدفع، أرسل صورة الإيصال على واتساب +20 100 123 4567 مع ذكر بياناتك لتفعيل الحساب.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل يوجد تجربة مجانية؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>لا، لا يوجد تجربة مجانية. النظام يتطلب اشتراك مدفوع مقدمًا لضمان جودة الخدمة وأمان البيانات.</p>
+                    <p>لكن يمكنك مشاهدة فيديو توضيحي للنظام قبل الاشتراك.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>ماذا يحدث عند انتهاء الاشتراك؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>عند انتهاء الاشتراك:</p>
+                    <ul>
+                        <li>يتم منع الدخول للنظام فورًا</li>
+                        <li>تظهر صفحة تطلب التجديد</li>
+                        <li>البيانات محفوظة لمدة 30 يوم</li>
+                        <li>بعد 30 يوم يتم حذف البيانات نهائيًا</li>
+                    </ul>
+                    <div class="warning-box">
+                        <p><strong>تنبيه:</strong> احرص على تجديد اشتراكك قبل انتهائه لتجنب فقدان البيانات!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم الاستخدام -->
+        <div class="faq-section" id="usage">
+            <div class="faq-category-header">⚡ الاستخدام</div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أبدأ استخدام النظام؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>بعد تفعيل حسابك:</p>
+                    <ul>
+                        <li>ستصلك بيانات الدخول على بريدك الإلكتروني</li>
+                        <li>سجل دخولك بالبريد وكلمة السر</li>
+                        <li>ابدأ بإضافة عملائك وموردينك</li>
+                        <li>سجل معاملاتك المالية</li>
+                        <li>تابع التقارير والملخصات</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كم عدد العملاء الذي يمكنني إضافتهم؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>لا يوجد حد أقصى لعدد العملاء أو الموردين. يمكنك إضافة عدد غير محدود من:</p>
+                    <ul>
+                        <li>العملاء</li>
+                        <li>الموردين</li>
+                        <li>المعاملات المالية</li>
+                        <li>الفواتير والإيصالات</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل يمكنني استخدام النظام من الموبايل؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم! النظام مصمم ليعمل بكفاءة على:</p>
+                    <ul>
+                        <li>الموبايل (أندرويد وآيفون)</li>
+                        <li>التابلت</li>
+                        <li>اللابتوب والكمبيوتر</li>
+                    </ul>
+                    <p>يمكنك الوصول لحساباتك من أي جهاز متصل بالإنترنت.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أطبع التقارير؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>يمكنك طباعة التقارير بسهولة:</p>
+                    <ul>
+                        <li>اختر التقرير المطلوب</li>
+                        <li>اضغط على زر "طباعة"</li>
+                        <li>أو احفظه كملف PDF</li>
+                        <li>شاركه مع محاسبك أو شريكك</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم المشاكل التقنية -->
+        <div class="faq-section" id="technical">
+            <div class="faq-category-header">⚙ المشاكل التقنية</div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>نسيت كلمة السر، ماذا أفعل؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>لاستعادة كلمة السر:</p>
+                    <ul>
+                        <li>اضغط على "نسيت كلمة السر" في صفحة الدخول</li>
+                        <li>أدخل بريدك الإلكتروني</li>
+                        <li>ستصلك رسالة لإعادة تعيين كلمة السر</li>
+                        <li>أو تواصل معنا على واتساب للمساعدة</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>النظام بطيء أو لا يعمل، ما الحل؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>جرب هذه الحلول:</p>
+                    <ul>
+                        <li>تأكد من قوة الإنترنت</li>
+                        <li>أعد تحديث الصفحة (F5)</li>
+                        <li>امسح الكاش والكوكيز</li>
+                        <li>جرب متصفح آخر</li>
+                        <li>أعد تشغيل الجهاز</li>
+                    </ul>
+                    <p>إذا استمرت المشكلة، تواصل معنا فورًا.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>فقدت بعض البيانات، هل يمكن استرجاعها؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم! نحتفظ بنسخ احتياطية يومية من جميع البيانات.</p>
+                    <div class="highlight-box">
+                        <p><strong>للاسترجاع:</strong></p>
+                        <ul>
+                            <li>تواصل معنا فورًا</li>
+                            <li>حدد التاريخ التقريبي لفقدان البيانات</li>
+                            <li>سنقوم باسترجاع البيانات خلال 24 ساعة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم الأمان والخصوصية -->
+        <div class="faq-section" id="security">
+            <div class="faq-category-header">🛡 الأمان والخصوصية</div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل بياناتي آمنة؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم، بياناتك محمية بأعلى معايير الأمان:</p>
+                    <ul>
+                        <li>تشفير 256-bit SSL</li>
+                        <li>خوادم آمنة محمية</li>
+                        <li>نسخ احتياطية يومية</li>
+                        <li>مراقبة أمنية 24/7</li>
+                        <li>وصول محدود للموظفين المخولين فقط</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل يمكن لأحد الوصول لحساباتي؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>لا، حسابك محمي بكلمة سر شخصية. لا يمكن لأي شخص آخر الوصول إليه.</p>
+                    <div class="warning-box">
+                        <p><strong>نصائح مهمة:</strong></p>
+                        <ul>
+                            <li>لا تشارك بيانات الدخول مع أحد</li>
+                            <li>استخدم كلمة سر قوية</li>
+                            <li>سجل خروج بعد الانتهاء</li>
+                            <li>غير كلمة السر دوريًا</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>ماذا يحدث لبياناتي عند إلغاء الاشتراك؟</span>
+                    <span class="faq-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <p>عند إلغاء الاشتراك:</p>
+                    <ul>
+                        <li>البيانات محفوظة لمدة 30 يوم</li>
+                        <li>يمكنك استرجاعها بتجديد الاشتراك</li>
+                        <li>بعد 30 يوم يتم حذفها نهائيًا</li>
+                        <li>يمكنك طلب نسخة من بياناتك قبل الحذف</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-cta">
+            <h3>لم تجد إجابة لسؤالك؟</h3>
+            <p>فريق الدعم الفني جاهز لمساعدتك 24/7</p>
+            
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <h4>💬 واتساب</h4>
+                    <p>+20 100 123 4567</p>
+                    <p>رد فوري</p>
+                </div>
+                <div class="contact-method">
+                    <h4>✉ البريد الإلكتروني</h4>
+                    <p>support@daftrk.com</p>
+                    <p>رد خلال ساعة</p>
+                </div>
+                <div class="contact-method">
+                    <h4>☎ الهاتف</h4>
+                    <p>+20 123 456 7890</p>
+                    <p>من 9 ص إلى 9 م</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('.faq-icon');
+            
+            // Close all other FAQs
+            document.querySelectorAll('.faq-question.active').forEach(q => {
+                if (q !== element) {
+                    q.classList.remove('active');
+                    q.nextElementSibling.classList.remove('active');
+                }
+            });
+            
+            // Toggle current FAQ
+            element.classList.toggle('active');
+            answer.classList.toggle('active');
+        }
+
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = searchTerm ? 'none' : 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

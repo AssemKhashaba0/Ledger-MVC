@@ -1,6 +1,306 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
+    Layout = null;
 }
-<h1>@ViewData["Title"]</h1>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سياسة الخصوصية - دفترك الإلكتروني</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary: #f1f5f9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --transition: 0.3s ease;
+        }
 
-<p>Use this page to detail your site's privacy policy.</p>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content-card {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .section h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin: 20px 0 10px 0;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .section ul {
+            color: var(--text-secondary);
+            margin-right: 20px;
+            margin-bottom: 15px;
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            background: var(--secondary);
+            padding: 15px;
+            border-radius: var(--radius);
+            border-right: 4px solid var(--primary);
+            margin: 20px 0;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            transition: var(--transition);
+        }
+
+        .highlight:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .contact-info:hover {
+            transform: scale(1.02);
+            transition: var(--transition);
+        }
+
+        @@media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← العودة للرئيسية</a>
+        
+        <div class="header">
+            <h1>سياسة الخصوصية</h1>
+            <p>نحن نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية</p>
+        </div>
+
+        <div class="content-card">
+            <div class="section">
+                <h2>مقدمة</h2>
+                <p>نحن في "دفترك الإلكتروني" نقدر ثقتك بنا ونلتزم بحماية خصوصيتك وأمان بياناتك الشخصية. هذه السياسة توضح كيفية جمع واستخدام وحماية المعلومات التي تقدمها لنا عند استخدام خدماتنا.</p>
+            </div>
+
+            <div class="section">
+                <h2>المعلومات التي نجمعها</h2>
+                <h3>المعلومات الشخصية:</h3>
+                <ul>
+                    <li>الاسم الكامل</li>
+                    <li>عنوان البريد الإلكتروني</li>
+                    <li>رقم الهاتف</li>
+                    <li>معلومات الدفع والاشتراك</li>
+                </ul>
+                
+                <h3>بيانات الاستخدام:</h3>
+                <ul>
+                    <li>بيانات العملاء والموردين التي تدخلها</li>
+                    <li>المعاملات المالية والحسابات</li>
+                    <li>تواريخ وأوقات الاستخدام</li>
+                    <li>عنوان IP ونوع المتصفح</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>كيفية استخدام المعلومات</h2>
+                <p>نستخدم المعلومات المجمعة للأغراض التالية:</p>
+                <ul>
+                    <li>تقديم وتحسين خدماتنا</li>
+                    <li>إدارة حسابك واشتراكك</li>
+                    <li>التواصل معك بخصوص الخدمة</li>
+                    <li>معالجة المدفوعات والفواتير</li>
+                    <li>تقديم الدعم الفني</li>
+                    <li>تحسين أمان النظام</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>حماية البيانات</h2>
+                <div class="highlight">
+                    <p><strong>التزامنا بالأمان:</strong> نستخدم أحدث تقنيات التشفير وبروتوكولات الأمان لحماية بياناتك من الوصول غير المصرح به أو التسريب.</p>
+                </div>
+                <ul>
+                    <li>تشفير جميع البيانات أثناء النقل والتخزين</li>
+                    <li>خوادم آمنة محمية بجدران حماية متقدمة</li>
+                    <li>نسخ احتياطية منتظمة للبيانات</li>
+                    <li>مراقبة مستمرة للأنشطة المشبوهة</li>
+                    <li>وصول محدود للموظفين المخولين فقط</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>مشاركة المعلومات</h2>
+                <p>نحن لا نبيع أو نؤجر أو نشارك معلوماتك الشخصية مع أطراف ثالثة، باستثناء الحالات التالية:</p>
+                <ul>
+                    <li>عند الحصول على موافقتك الصريحة</li>
+                    <li>لتقديم الخدمات المطلوبة (مثل معالجة المدفوعات)</li>
+                    <li>عند الطلب القانوني من السلطات المختصة</li>
+                    <li>لحماية حقوقنا أو حقوق المستخدمين الآخرين</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>حقوقك</h2>
+                <p>لديك الحق في:</p>
+                <ul>
+                    <li>الوصول إلى بياناتك الشخصية</li>
+                    <li>تصحيح أو تحديث معلوماتك</li>
+                    <li>حذف حسابك وبياناتك</li>
+                    <li>تقييد معالجة بياناتك</li>
+                    <li>نقل بياناتك إلى خدمة أخرى</li>
+                    <li>الاعتراض على معالجة بياناتك</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>الكوكيز وتقنيات التتبع</h2>
+                <p>نستخدم الكوكيز وتقنيات مشابهة لتحسين تجربتك وتذكر تفضيلاتك. يمكنك التحكم في إعدادات الكوكيز من خلال متصفحك.</p>
+            </div>
+
+            <div class="section">
+                <h2>الاحتفاظ بالبيانات</h2>
+                <p>نحتفظ بمعلوماتك طالما كان حسابك نشطًا أو حسب الحاجة لتقديم الخدمات. عند إلغاء حسابك، سيتم حذف بياناتك خلال 30 يومًا، باستثناء المعلومات المطلوبة قانونيًا.</p>
+            </div>
+
+            <div class="section">
+                <h2>التحديثات على السياسة</h2>
+                <p>قد نقوم بتحديث هذه السياسة من وقت لآخر. سنقوم بإشعارك بأي تغييرات مهمة عبر البريد الإلكتروني أو من خلال النظام.</p>
+                <p><strong>تاريخ آخر تحديث:</strong> يناير 2024</p>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <h3>تواصل معنا</h3>
+            <p>إذا كان لديك أي استفسارات حول سياسة الخصوصية، يرجى التواصل معنا:</p>
+            <p><strong>البريد الإلكتروني:</strong> privacy@daftrk.com</p>
+            <p><strong>الهاتف:</strong> +20 123 456 7890</p>
+        </div>
+    </div>
+</body>
+</html>
