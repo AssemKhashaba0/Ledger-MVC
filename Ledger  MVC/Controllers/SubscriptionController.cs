@@ -290,14 +290,63 @@ namespace Ledger__MVC.Controllers
 
                 try
                 {
-                    string emailBody = $@"<h3>مرحبًا {user.FullName}</h3>
-                        <p>تم تعديل اشتراكك في نظام Smart Ledger.</p>
-                        <p>تفاصيل الاشتراك الجديد:</p>
-                        <ul>
-                            <li>نوع الاشتراك: {model.SubscriptionType.GetDisplayName()}</li>
-                            <li>تاريخ البداية: {model.SubscriptionStartDate:yyyy-MM-dd}</li>
-                            <li>تاريخ الانتهاء: {user.SubscriptionEndDate:yyyy-MM-dd}</li>
-                        </ul>";
+                    string emailBody = $@"
+<!DOCTYPE html>
+<html lang='ar' dir='rtl'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>تعديل اشتراكك في كشكول</title>
+    <style>
+        body {{ font-family: 'Arial', sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }}
+        .container {{ max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }}
+        .header {{ background-color: #6366f1; padding: 20px; text-align: center; color: #ffffff; }}
+        .header h1 {{ margin: 0; font-size: 20px; }}
+        .content {{ padding: 20px; }}
+        .greeting {{ font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }}
+        .message {{ margin-bottom: 15px; font-size: 14px; }}
+        .login-box {{ background-color: #f1f5f9; border-radius: 8px; padding: 15px; margin: 15px 0; border-right: 4px solid #6366f1; }}
+        .login-row {{ margin-bottom: 10px; }}
+        .login-label {{ font-weight: bold; color: #64748b; font-size: 14px; }}
+        .login-value {{ color: #1e293b; font-size: 14px; }}
+        .password-highlight {{ background-color: #a5b4fc; padding: 2px 8px; border-radius: 4px; border: 1px solid #4f46e5; font-weight: bold; }}
+        .footer {{ background-color: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }}
+        .footer-logo {{ font-weight: bold; color: #6366f1; margin-bottom: 5px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>تعديل اشتراكك في كشكول</h1>
+        </div>
+        <div class='content'>
+            <div class='greeting'>مرحبًا {user.FullName}،</div>
+            <div class='message'>
+                <p>تم تعديل اشتراكك في <span style='color: #6366f1; font-weight: bold;'>كشكول</span>.</p>
+                <p>تفاصيل الاشتراك الجديد:</p>
+            </div>
+            <div class='login-box'>
+                <div class='login-row'>
+                    <span class='login-label'>نوع الاشتراك:</span>
+                    <span class='login-value'>{model.SubscriptionType.GetDisplayName()}</span>
+                </div>
+                <div class='login-row'>
+                    <span class='login-label'>تاريخ البداية:</span>
+                    <span class='login-value'>{model.SubscriptionStartDate:yyyy-MM-dd}</span>
+                </div>
+                <div class='login-row'>
+                    <span class='login-label'>تاريخ الانتهاء:</span>
+                    <span class='login-value'>{user.SubscriptionEndDate:yyyy-MM-dd}</span>
+                </div>
+            </div>
+        </div>
+        <div class='footer'>
+            <div class='footer-logo'>كشكول</div>
+            <p>© {DateTime.Now.Year} كشكول. جميع الحقوق محفوظة.</p>
+        </div>
+    </div>
+</body>
+</html>";
 
                     await _emailSender.SendEmailAsync(user.Email, "تعديل اشتراكك في Smart Ledger", emailBody);
                 }
@@ -425,14 +474,64 @@ namespace Ledger__MVC.Controllers
 
                 try
                 {
-                    string emailBody = $@"<h3>مرحبًا {user.FullName}</h3>
-                        <p>تم تجديد اشتراكك في نظام Smart Ledger.</p>
-                        <p>تفاصيل الاشتراك الجديد:</p>
-                        <ul>
-                            <li>نوع الاشتراك: {model.SubscriptionType.GetDisplayName()}</li>
-                            <li>تاريخ البداية: {model.SubscriptionStartDate:yyyy-MM-dd}</li>
-                            <li>تاريخ الانتهاء: {subscriptionEndDate:yyyy-MM-dd}</li>
-                        </ul>";
+                    string emailBody = $@"
+<!DOCTYPE html>
+<html lang='ar' dir='rtl'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>تجديد اشتراكك في كشكول</title>
+    <style>
+        body {{ font-family: 'Arial', sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }}
+        .container {{ max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }}
+        .header {{ background-color: #6366f1; padding: 20px; text-align: center; color: #ffffff; }}
+        .header h1 {{ margin: 0; font-size: 20px; }}
+        .content {{ padding: 20px; }}
+        .greeting {{ font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }}
+        .message {{ margin-bottom: 15px; font-size: 14px; }}
+        .login-box {{ background-color: #f1f5f9; border-radius: 8px; padding: 15px; margin: 15px 0; border-right: 4px solid #6366f1; }}
+        .login-row {{ margin-bottom: 10px; }}
+        .login-label {{ font-weight: bold; color: #64748b; font-size: 14px; }}
+        .login-value {{ color: #1e293b; font-size: 14px; }}
+        .password-highlight {{ background-color: #a5b4fc; padding: 2px 8px; border-radius: 4px; border: 1px solid #4f46e5; font-weight: bold; }}
+        .footer {{ background-color: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }}
+        .footer-logo {{ font-weight: bold; color: #6366f1; margin-bottom: 5px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>تجديد اشتراكك في كشكول</h1>
+        </div>
+        <div class='content'>
+            <div class='greeting'>مرحبًا {user.FullName}،</div>
+            <div class='message'>
+                <p>تم تجديد اشتراكك في <span style='color: #6366f1; font-weight: bold;'>كشكول</span>.</p>
+                <p>تفاصيل الاشتراك الجديد:</p>
+            </div>
+            <div class='login-box'>
+                <div class='login-row'>
+                    <span class='login-label'>نوع الاشتراك:</span>
+                    <span class='login-value'>{model.SubscriptionType.GetDisplayName()}</span>
+                </div>
+                <div class='login-row'>
+                    <span class='login-label'>تاريخ البداية:</span>
+                    <span class='login-value'>{model.SubscriptionStartDate:yyyy-MM-dd}</span>
+                </div>
+                <div class='login-row'>
+                    <span class='login-label'>تاريخ الانتهاء:</span>
+                    <span class='login-value'>{subscriptionEndDate:yyyy-MM-dd}</span>
+                </div>
+            </div>
+        </div>
+        <div class='footer'>
+            <div class='footer-logo'>كشكول</div>
+            <p>© {DateTime.Now.Year} كشكول. جميع الحقوق محفوظة.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
 
                     await _emailSender.SendEmailAsync(user.Email, "تجديد اشتراكك في Smart Ledger", emailBody);
                 }
@@ -527,9 +626,49 @@ namespace Ledger__MVC.Controllers
 
                 try
                 {
-                    string emailBody = $@"<h3>مرحبًا {user.FullName}</h3>
-                        <p>تم إلغاء حظر حسابك في نظام Smart Ledger.</p>
-                        <p>يمكنك الآن تسجيل الدخول باستخدام بياناتك.</p>";
+                    string emailBody = $@"
+<!DOCTYPE html>
+<html lang='ar' dir='rtl'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>إلغاء حظر حسابك في كشكول</title>
+    <style>
+        body {{ font-family: 'Arial', sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }}
+        .container {{ max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }}
+        .header {{ background-color: #6366f1; padding: 20px; text-align: center; color: #ffffff; }}
+        .header h1 {{ margin: 0; font-size: 20px; }}
+        .content {{ padding: 20px; }}
+        .greeting {{ font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }}
+        .message {{ margin-bottom: 15px; font-size: 14px; }}
+        .login-box {{ background-color: #f1f5f9; border-radius: 8px; padding: 15px; margin: 15px 0; border-right: 4px solid #6366f1; }}
+        .login-row {{ margin-bottom: 10px; }}
+        .login-label {{ font-weight: bold; color: #64748b; font-size: 14px; }}
+        .login-value {{ color: #1e293b; font-size: 14px; }}
+        .password-highlight {{ background-color: #a5b4fc; padding: 2px 8px; border-radius: 4px; border: 1px solid #4f46e5; font-weight: bold; }}
+        .footer {{ background-color: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }}
+        .footer-logo {{ font-weight: bold; color: #6366f1; margin-bottom: 5px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>إلغاء حظر حسابك في كشكول</h1>
+        </div>
+        <div class='content'>
+            <div class='greeting'>مرحبًا {user.FullName}،</div>
+            <div class='message'>
+                <p>تم إلغاء حظر حسابك في <span style='color: #6366f1; font-weight: bold;'>كشكول</span>.</p>
+                <p>يمكنك الآن تسجيل الدخول باستخدام بياناتك.</p>
+            </div>
+        </div>
+        <div class='footer'>
+            <div class='footer-logo'>كشكول</div>
+            <p>© {DateTime.Now.Year} كشكول. جميع الحقوق محفوظة.</p>
+        </div>
+    </div>
+</body>
+</html>";
 
                     await _emailSender.SendEmailAsync(user.Email, "إلغاء حظر حسابك في Smart Ledger", emailBody);
                 }

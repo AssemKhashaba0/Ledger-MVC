@@ -11,7 +11,6 @@ namespace Ledger__MVC.Models
 
 
 
-        [Required, Phone]
         public string PhoneNumber { get; set; }
 
 

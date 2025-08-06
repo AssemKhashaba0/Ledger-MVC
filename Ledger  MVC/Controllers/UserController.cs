@@ -59,8 +59,7 @@ namespace Ledger__MVC.Controllers
             public string Email { get; set; }
 
             [Required(ErrorMessage = "رقم الهاتف مطلوب")]
-            [Phone(ErrorMessage = "رقم الهاتف غير صالح")]
-            [Display(Name = "رقم الهاتف")]
+           
             public string PhoneNumber { get; set; }
 
             [Required(ErrorMessage = "نوع الاشتراك مطلوب")]
@@ -128,6 +127,7 @@ namespace Ledger__MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUpdateUserViewModel model)
         {
+            // التحقق من صحة النموذج
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -138,29 +138,51 @@ namespace Ledger__MVC.Controllers
 
             try
             {
-                // Check for duplicate email
+                // التحقق من تكرار البريد الإلكتروني
                 if (await _userManager.FindByEmailAsync(model.Email) != null)
                 {
                     ModelState.AddModelError("Email", "البريد الإلكتروني مستخدم بالفعل، الرجاء استخدام بريد آخر.");
+                    Console.WriteLine($"Duplicate email detected: {model.Email}");
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
 
-                // Validate subscription type
+                // التحقق من نوع الاشتراك
                 if (model.SubscriptionType == 0)
                 {
                     ModelState.AddModelError("SubscriptionType", "الرجاء اختيار خطة اشتراك أولاً.");
+                    Console.WriteLine("Invalid SubscriptionType: 0");
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
 
-                // Create new user using UserManager
+                // تنظيف والتحقق من رقم الهاتف
+                string cleanedPhoneNumber = CleanPhoneNumber(model.PhoneNumber);
+                Console.WriteLine($"Original PhoneNumber: {model.PhoneNumber}, Cleaned PhoneNumber: {cleanedPhoneNumber}");
+
+                if (string.IsNullOrEmpty(cleanedPhoneNumber))
+                {
+                    ModelState.AddModelError("PhoneNumber", "رقم الهاتف مطلوب.");
+                    Console.WriteLine("PhoneNumber is empty or null");
+                    PopulateSubscriptionTypes();
+                    return View(model);
+                }
+
+                if (cleanedPhoneNumber.Length < 10 || cleanedPhoneNumber.Length > 15)
+                {
+                    ModelState.AddModelError("PhoneNumber", "رقم الهاتف يجب أن يكون بين 10 و15 رقمًا.");
+                    Console.WriteLine($"Invalid PhoneNumber length: {cleanedPhoneNumber.Length}");
+                    PopulateSubscriptionTypes();
+                    return View(model);
+                }
+
+                // إنشاء مستخدم جديد
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
                     Email = model.Email,
                     FullName = model.FullName,
-                    PhoneNumber = model.PhoneNumber,
+                    PhoneNumber = cleanedPhoneNumber, // استخدام الرقم المنظف
                     SubscriptionType = model.SubscriptionType,
                     SubscriptionStartDate = model.SubscriptionStartDate,
                     SubscriptionEndDate = CalculateSubscriptionEndDate(model.SubscriptionType, model.SubscriptionStartDate),
@@ -169,38 +191,47 @@ namespace Ledger__MVC.Controllers
                     EmailConfirmed = true
                 };
 
-                // Generate temporary password
+                // إنشاء كلمة مرور مؤقتة
                 var temporaryPassword = GenerateTemporaryPassword();
+                Console.WriteLine($"Generated temporary password: {temporaryPassword}");
                 var result = await _userManager.CreateAsync(user, temporaryPassword);
+
+                // التحقق من نجاح إنشاء المستخدم
                 if (!result.Succeeded)
                 {
-                    foreach (var error in result.Errors)
+                    var errorMessages = result.Errors.Select(e => e.Description).ToList();
+                    foreach (var error in errorMessages)
                     {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                        Console.WriteLine($"Identity Error: {error.Description}");
+                        ModelState.AddModelError(string.Empty, error);
+                        Console.WriteLine($"Identity Error: {error}");
                     }
+                    TempData["Error"] = $"فشل إنشاء المستخدم بسبب الأخطاء التالية: {string.Join(", ", errorMessages)}";
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
+
+                // التحقق من وجود الدور "User" وإضافته
                 if (!await _roleManager.RoleExistsAsync("User"))
                 {
                     await _roleManager.CreateAsync(new IdentityRole("User"));
+                    Console.WriteLine("Created 'User' role.");
                 }
                 await _userManager.AddToRoleAsync(user, "User");
+                Console.WriteLine($"Added user {model.Email} to 'User' role.");
 
-                // Verify the user exists in _context
+                // التحقق من وجود المستخدم في قاعدة البيانات
                 var savedUser = await _context.ApplicationUsers
                     .FirstOrDefaultAsync(u => u.Email == model.Email);
                 if (savedUser == null)
                 {
-                    Console.WriteLine("Failed to find user in _context. Email: " + model.Email);
+                    Console.WriteLine($"Failed to find user in _context. Email: {model.Email}");
                     TempData["Error"] = "فشل في العثور على المستخدم في قاعدة البيانات. الرجاء المحاولة مرة أخرى.";
                     PopulateSubscriptionTypes();
                     return View(model);
                 }
                 Console.WriteLine($"Found user with ID: {savedUser.Id}");
 
-                // Add subscription history
+                // إضافة سجل الاشتراك
                 try
                 {
                     var subscriptionHistory = new SubscriptionHistory
@@ -219,39 +250,12 @@ namespace Ledger__MVC.Controllers
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to save SubscriptionHistory: {ex.Message}, InnerException: {ex.InnerException?.Message}");
-                    throw; // Rethrow to catch in outer try-catch
+                    TempData["Error"] = "فشل حفظ سجل الاشتراك. الرجاء المحاولة لاحقًا.";
+                    PopulateSubscriptionTypes();
+                    return View(model);
                 }
 
-                // Log audit
-                //var adminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                //if (string.IsNullOrEmpty(adminId))
-                //{
-                //    Console.WriteLine("Admin user is not authenticated.");
-                //    TempData["Error"] = "لا يمكن تسجيل العملية لأن المسؤول غير مسجل الدخول.";
-                //    PopulateSubscriptionTypes();
-                //    return View(model);
-                //}
-
-                //try
-                //{
-                //    var auditLog = new AuditLog
-                //    {
-                //        ApplicationUserId = adminId,
-                //        Action = "إنشاء حساب مستخدم جديد",
-                //        Details = $"تم إنشاء حساب للمستخدم {model.Email} مع اشتراك {GetEnumDisplayName(model.SubscriptionType)}",
-                //        Timestamp = DateTime.Now
-                //    };
-                //    _context.AuditLogs.Add(auditLog);
-                //    await _context.SaveChangesAsync();
-                //    Console.WriteLine("AuditLog saved successfully.");
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine($"Failed to save AuditLog: {ex.Message}, InnerException: {ex.InnerException?.Message}");
-                //    throw; // Rethrow to catch in outer try-catch
-                //}
-
-                // Send email
+                // إرسال البريد الإلكتروني
                 try
                 {
                     string emailBody = $@"
@@ -286,7 +290,7 @@ namespace Ledger__MVC.Controllers
             <div class='content'>
                 <div class='greeting'>مرحبًا {model.FullName}،</div>
                 <div class='message'>
-                    <p>تم إنشاء حسابك بنجاح في <span style='color: #6366f1; font-weight: bold;'>ASVS</span>.</p>
+                    <p>تم إنشاء حسابك بنجاح في <span style='color: #6366f1; font-weight: bold;'>كشكول</span>.</p>
                     <p>بيانات الدخول الخاصة بك:</p>
                 </div>
                 <div class='login-box'>
@@ -304,7 +308,6 @@ namespace Ledger__MVC.Controllers
                 </div>
             </div>
             <div class='footer'>
-                <img src='~/IMG/ASVS Logo.png' alt='ASVS Logo' style='max-width: 120px; height: auto; margin-bottom: 5px;'>
                 <div class='footer-logo'>ASVS</div>
                 <p>© {DateTime.Now.Year} ASVS. جميع الحقوق محفوظة.</p>
             </div>
@@ -314,21 +317,62 @@ namespace Ledger__MVC.Controllers
 
                     await _emailSender.SendEmailAsync(model.Email, "بيانات الدخول إلى ASVS", emailBody);
                     TempData["Success"] = "تم إنشاء حساب المستخدم بنجاح وإرسال بيانات الدخول إلى البريد الإلكتروني.";
+                    Console.WriteLine($"Email sent successfully to {model.Email}.");
                 }
                 catch (Exception emailEx)
                 {
-                    TempData["Success"] = $"تم إنشاء الح حساب بنجاح، لكن فشل إرسال البريد الإلكتروني إلى {model.Email}. كلمة السر المؤقتة: <strong>{temporaryPassword}</strong>. الرجاء إبلاغ المستخدم بكلمة السر يدويًا.";
+                    TempData["Success"] = $"تم إنشاء الحساب بنجاح، لكن فشل إرسال البريد الإلكتروني إلى {model.Email}. كلمة السر المؤقتة: <strong>{temporaryPassword}</strong>. الرجاء إبلاغ المستخدم بكلمة السر يدويًا.";
+                    Console.WriteLine($"Email sending failed: {emailEx.Message}, InnerException: {emailEx.InnerException?.Message}");
                 }
 
+                // إعادة التوجيه إلى صفحة الفهرس بعد النجاح
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception during SaveChanges: {ex.Message}, InnerException: {ex.InnerException?.Message}");
+                // تسجيل الخطأ العام
+                Console.WriteLine($"Exception during Create: {ex.Message}, InnerException: {ex.InnerException?.Message}");
                 TempData["Error"] = $"حدث خطأ غير متوقع أثناء إنشاء المستخدم: {ex.InnerException?.Message ?? ex.Message}";
                 PopulateSubscriptionTypes();
                 return View(model);
             }
+        }
+
+        // دالة لتنظيف رقم الهاتف
+        private string CleanPhoneNumber(string phoneNumber)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return null;
+            return new string(phoneNumber.Where(char.IsDigit).ToArray());
+        }
+
+        // دالة لتوليد كلمة مرور مؤقتة
+        private string GenerateTemporaryPassword()
+        {
+            const string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+            const string digits = "0123456789";
+            const string nonAlphanumeric = "!@#$%^&*";
+            var random = new Random();
+
+            // توليد كلمة مرور من 12 حرف
+            var password = new char[12];
+
+            // التأكد من وجود حرف واحد على الأقل من كل نوع
+            password[0] = upperCase[random.Next(upperCase.Length)]; // حرف كبير
+            password[1] = lowerCase[random.Next(lowerCase.Length)]; // حرف صغير
+            password[2] = digits[random.Next(digits.Length)]; // رقم
+            password[3] = nonAlphanumeric[random.Next(nonAlphanumeric.Length)]; // رمز غير أبجدي
+
+            // ملء باقي الأحرف عشوائيًا
+            const string allChars = upperCase + lowerCase + digits + nonAlphanumeric;
+            for (int i = 4; i < password.Length; i++)
+            {
+                password[i] = allChars[random.Next(allChars.Length)];
+            }
+
+            // خلط الأحرف عشان تكون عشوائية
+            return new string(password.OrderBy(c => random.Next()).ToArray());
         }
         [HttpGet]
         public async Task<IActionResult> Update(string id)
@@ -676,13 +720,13 @@ namespace Ledger__MVC.Controllers
             };
         }
 
-        private string GenerateTemporaryPassword()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 12)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+        //private string GenerateTemporaryPassword()
+        //{
+        //    const string chars = "ABCDEFGHIJKLMNOPQRST!@UVWXYZabcdefghijkl!@#$%^&*mnopqrstuvwxyz0123456789";
+        //    var random = new Random();
+        //    return new string(Enumerable.Repeat(chars, 12)
+        //        .Select(s => s[random.Next(s.Length)]).ToArray());
+        //}
 
         private void PopulateSubscriptionTypes()
         {
